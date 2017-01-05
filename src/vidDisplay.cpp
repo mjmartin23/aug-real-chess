@@ -12,6 +12,41 @@
 #include <cstdio>
 #include "opencv2/opencv.hpp"
 
+void modifyColor(cv::VideoCapture *cap) {
+	for(;;) {
+		cv::Mat frame;
+
+		*capdev >> frame; // get a new frame from the camera, treat as a stream
+		
+		int channels = frame.channels();
+		int rows = frame.rows;
+		int cols = frame.cols;
+		printf("%d,%d,%d\n", rows,cols,channels);
+
+		uchar* p;
+		for (int i = 0; i < rows; ++i)
+		{
+			p = frame.ptr<uchar>(i);
+			for (int j = 0; j < cols*channels; j+=channels)
+			{
+				int pixel[3];
+				for (int k = 0; k < channels; ++k) {
+					pixel[k] = p[j+k];
+				}
+				p[j+2] = 255;	
+				//printf("(%d,%d,%d),", pixel[0],pixel[1],pixel[2]);
+			}
+			//printf("\n");
+		}
+		cv::imshow("Video", frame);
+		
+		if(cv::waitKey(30) % 255 > 0)
+			break;
+			
+
+	}
+}
+
 int main(int argc, char *argv[]) {
 	cv::VideoCapture *capdev;
 
@@ -24,17 +59,7 @@ int main(int argc, char *argv[]) {
 
 	cv::namedWindow("Video", 1); // identifies a window?
 
-	for(;;) {
-		cv::Mat frame;
-
-		*capdev >> frame; // get a new frame from the camera, treat as a stream
-
-		cv::imshow("Video", frame);
-
-		if(cv::waitKey(10) >= 0)
-			break;
-
-	}
+	modifyColor(capdev);
 
 	// terminate the video capture
 	printf("Terminating\n");
