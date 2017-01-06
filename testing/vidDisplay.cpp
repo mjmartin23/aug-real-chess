@@ -16,7 +16,7 @@ void modifyColor(cv::VideoCapture *cap) {
 	for(;;) {
 		cv::Mat frame;
 
-		*capdev >> frame; // get a new frame from the camera, treat as a stream
+		*cap >> frame; // get a new frame from the camera, treat as a stream
 		
 		int channels = frame.channels();
 		int rows = frame.rows;

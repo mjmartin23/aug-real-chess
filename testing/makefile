@@ -32,9 +32,3 @@ vid: vidDisplay.o
 
 imod: imgMod.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
-
-board: Board.o Video.o
-	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
-
-clean:
-	rm -f *.o *~ 
