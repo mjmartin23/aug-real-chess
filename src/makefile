@@ -2,7 +2,7 @@
 # CC = clang++
 
 # Dwarf compiler
-CC = g++
+CC = g++ -std=c++11
 
 CXX = $(CC)
 
@@ -23,7 +23,7 @@ CXXFLAGS = $(CFLAGS)
 #LDLIBS = -lopencv_core -lopencv_highgui -lopencv_video -lopencv_videoio -lopencv_imgproc -lopencv_imgcodecs
 
 # Dwarf libraries
-LDLIBS := $(shell pkg-config --libs opencv)
+LDLIBS := $(shell pkg-config --libs opencv) -laruco
 
 BINDIR = ../bin
 
@@ -35,6 +35,13 @@ imod: imgMod.o
 
 board: Board.o Video.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
+
+aruco: aruco_testing.o
+	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
+
+detect: aruco_detect.o
+	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
+
 
 clean:
 	rm -f *.o *~ 
