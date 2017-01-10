@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
 
             for (unsigned int i = 0; i < TheMarkers.size(); i++) {
                 //cout << TheMarkers[i]<<endl;
-                //TheMarkers[i].draw(TheInputImageCopy, Scalar(0, 0, 255));
+                TheMarkers[i].draw(TheInputImageCopy, Scalar(0, 0, 255));
             }
 
             // draw a 3d cube in each marker if there is 3d info
@@ -160,29 +160,29 @@ int main(int argc, char **argv) {
                 {
                     /* code */
                     
-                    rvec = TheMarkers[i].Rvec;
-                    tvec = TheMarkers[i].Tvec;
-                    std::vector<Point3f> points;
-                    std::vector<Point2f> proj_points;
-                    points.push_back( Point3f(-1.015f,-1.015f,0.f));
-                    points.push_back( Point3f(-1.015f,-1.015f,1.015f));
+                    // rvec = TheMarkers[i].Rvec;
+                    // tvec = TheMarkers[i].Tvec;
+                    // std::vector<Point3f> points;
+                    // std::vector<Point2f> proj_points;
+                    // points.push_back( Point3f(-1.015f,-1.015f,0.f));
+                    // points.push_back( Point3f(-1.015f,-1.015f,1.015f));
 
-                    points.push_back( Point3f(1.015f,-1.015f,0.f));
-                    points.push_back( Point3f(1.015f,-1.015f,1.015f)); 
+                    // points.push_back( Point3f(1.015f,-1.015f,0.f));
+                    // points.push_back( Point3f(1.015f,-1.015f,1.015f)); 
 
-                    points.push_back( Point3f(-1.015f,1.015f,0.f));
-                    points.push_back( Point3f(-1.015f,1.015f,1.015f)); 
+                    // points.push_back( Point3f(-1.015f,1.015f,0.f));
+                    // points.push_back( Point3f(-1.015f,1.015f,1.015f)); 
 
-                    points.push_back( Point3f(1.015f,1.015f,0.f));
-                    points.push_back( Point3f(1.015f,1.015f,1.015f));
+                    // points.push_back( Point3f(1.015f,1.015f,0.f));
+                    // points.push_back( Point3f(1.015f,1.015f,1.015f));
 
-                    cv::projectPoints(points,rvec,tvec,cam_matrix,dist,proj_points);
+                    // cv::projectPoints(points,rvec,tvec,cam_matrix,dist,proj_points);
 
-                    // draw axes at point
-                    cv::arrowedLine(TheInputImageCopy,proj_points[0],proj_points[1],Scalar(255,0,0),4);
-                    cv::arrowedLine(TheInputImageCopy,proj_points[2],proj_points[3],Scalar(0,255,0),4);
-                    cv::arrowedLine(TheInputImageCopy,proj_points[4],proj_points[5],Scalar(0,0,255),4);
-                    cv::arrowedLine(TheInputImageCopy,proj_points[6],proj_points[7],Scalar(255,255,0),4);
+                    // // draw axes at point
+                    // cv::arrowedLine(TheInputImageCopy,proj_points[0],proj_points[1],Scalar(255,0,0),4);
+                    // cv::arrowedLine(TheInputImageCopy,proj_points[2],proj_points[3],Scalar(0,255,0),4);
+                    // cv::arrowedLine(TheInputImageCopy,proj_points[4],proj_points[5],Scalar(0,0,255),4);
+                    // cv::arrowedLine(TheInputImageCopy,proj_points[6],proj_points[7],Scalar(255,255,0),4);
                 }
 
 
