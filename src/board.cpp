@@ -6,45 +6,70 @@ Board class
 
 #include "board.h"
 
-Board::Board(cv::Mat frame, std::vector<aruco::Marker> markers, aruco::CameraParameters camParams, std::tuple<int,int> size=std::make_tuple(8,8)) {
-	frame = frame;
-	markers = markers;
+Board::Board(aruco::CameraParameters camParams) {
 	cameraMatrix = camParams.CameraMatrix;
-	camerDistortion = camParams.Distortion;
-	size = size;
-	pairMarkersWithBoardPositions();
+	cameraDistortion = camParams.Distorsion;
+	size = std::make_tuple(8,8);
+
+
+	pairMarkersWithBoardPositions(); 
 	generateSquares();
 }
 
 void Board::generateSquares() {
-	for (int i = 0; i < size; ++i)
-	{
-		/* code */
+	for (int i = 0; i < std::get<0>(size); ++i) {
+		for (int j = 0; j < std::get<1>(size); ++j) {
+			std::tuple<int,int> pos = std::make_tuple(j,i);
+			Square* sq = new Square(j,i,markerBoardPositions[std::make_tuple(j/2,i/2)]);
+			squares[pos] = sq;
+		}
 	}
 }
 
+aruco::Marker* Board::getMarkerById(int id) {
+	for (int i = 0; i < markers.size(); ++i) {
+		if (id == markers[i].id) {
+			return &markers[i];
+		}
+	}
+	return nullptr;
+}
+
 void Board::pairMarkersWithBoardPositions() {
-	markerBoardPositions[86] = std::make_tuple(0,0);
-	markerBoardPositions[79] = std::make_tuple(1,0);
-	markerBoardPositions[58] = std::make_tuple(2,0);
-	markerBoardPositions[81] = std::make_tuple(3,0);
-	markerBoardPositions[213] = std::make_tuple(0,1);
-	markerBoardPositions[73] = std::make_tuple(1,1);
-	markerBoardPositions[152] = std::make_tuple(2,1);
-	markerBoardPositions[63] = std::make_tuple(3,1);
-	markerBoardPositions[163] = std::make_tuple(0,2);
-	markerBoardPositions[30] = std::make_tuple(1,2);
-	markerBoardPositions[113] = std::make_tuple(2,2);
-	markerBoardPositions[192] = std::make_tuple(3,2);
-	markerBoardPositions[69] = std::make_tuple(0,3);
-	markerBoardPositions[144] = std::make_tuple(1,3);
-	markerBoardPositions[206] = std::make_tuple(2,3);
-	markerBoardPositions[244] = std::make_tuple(3,3);
+	// generate dictionary for wuick lookup of which marker is in which position
+	markerBoardPositions[std::make_tuple(0,0)] = 86;
+	markerBoardPositions[std::make_tuple(1,0)] = 79;
+	markerBoardPositions[std::make_tuple(2,0)] = 58;
+	markerBoardPositions[std::make_tuple(3,0)] = 81;
+	markerBoardPositions[std::make_tuple(0,1)] = 213;
+	markerBoardPositions[std::make_tuple(1,1)] = 73;
+	markerBoardPositions[std::make_tuple(2,1)] = 152;
+	markerBoardPositions[std::make_tuple(3,1)] = 63;
+	markerBoardPositions[std::make_tuple(0,2)] = 163;
+	markerBoardPositions[std::make_tuple(1,2)] = 30;
+	markerBoardPositions[std::make_tuple(2,2)] = 113;
+	markerBoardPositions[std::make_tuple(3,2)] = 192;
+	markerBoardPositions[std::make_tuple(0,3)] = 69;
+	markerBoardPositions[std::make_tuple(1,3)] = 144;
+	markerBoardPositions[std::make_tuple(2,3)] = 206;
+	markerBoardPositions[std::make_tuple(3,3)] = 244;
 }
 
 
-int main(int argc, char const *argv[]) {
-	Board bd;
-	
-	return 0;
+void Board::update(cv::Mat *frame, std::vector<aruco::Marker> visibleMarkers) {
+	cout << "Updating board" << endl;
+	markers = visibleMarkers;
+
+	// draw squares
+	for (int i = 0; i < std::get<0>(size); ++i) {
+		for (int j = 0; j < std::get<1>(size); ++j) {
+			std::tuple<int,int> pos = std::make_tuple(j,i);
+			aruco::Marker* m = getMarkerById(markerBoardPositions[std::make_tuple(j/2,i/2)]);
+			Square *square = squares[pos];
+			cout <<"read "<<i<<","<<j<<endl;
+			square->draw(frame,m,cameraMatrix,cameraDistortion);
+			cout <<"drew "<<i<<","<<j<<endl;
+		}
+	}
+	// draw pieces
 }
