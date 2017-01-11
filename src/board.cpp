@@ -10,8 +10,6 @@ Board::Board(aruco::CameraParameters camParams) {
 	cameraMatrix = camParams.CameraMatrix;
 	cameraDistortion = camParams.Distorsion;
 	size = std::make_tuple(8,8);
-
-
 	pairMarkersWithBoardPositions(); 
 	generateSquares();
 }
@@ -64,11 +62,9 @@ void Board::update(cv::Mat *frame, std::vector<aruco::Marker> visibleMarkers) {
 	for (int i = 0; i < std::get<0>(size); ++i) {
 		for (int j = 0; j < std::get<1>(size); ++j) {
 			std::tuple<int,int> pos = std::make_tuple(j,i);
-			aruco::Marker* m = getMarkerById(markerBoardPositions[std::make_tuple(j/2,i/2)]);
 			Square *square = squares[pos];
-			cout <<"read "<<i<<","<<j<<endl;
+			aruco::Marker* m = getMarkerById(square->markerId);
 			square->draw(frame,m,cameraMatrix,cameraDistortion);
-			cout <<"drew "<<i<<","<<j<<endl;
 		}
 	}
 	// draw pieces

@@ -5,10 +5,14 @@ Square class implementation
 
 #include "square.h"
 
-Square::Square(int col, int row, int markerId) {
-	col = col; row = row; markerId = markerId;
-	int c = 4;
-	nCorners = &c;
+Square::Square(int coln, int rown, int marker) {
+	col = coln; 
+	row = rown;
+	markerId = marker;
+	//cout <<"made square at"<<col<<','<<row<<','<<markerId<<endl;
+
+	//int c = 4;
+	
 	seen = false;
 	setCorners();
 	setColor();
@@ -67,22 +71,18 @@ void Square::setCorners() {
 }
 
 void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, cv::Mat cameraDistortion) {
-	const cv::Point2i** ppts;
 	if (marker != nullptr) {
-		seen = true;
-		rvec = marker->Rvec;
-		tvec = marker->Tvec;
+		int nCorners[] = {4};
+		//seen = true;
 		projPoints.clear();
-		projPointsInt.clear();
-		cv::projectPoints(corners,rvec,tvec,cameraMatrix,cameraDistortion,projPoints);
+		
+		cv::projectPoints(corners,marker->Rvec,marker->Tvec,cameraMatrix,cameraDistortion,projPoints);
+
 	    for (int c = 0; c < projPoints.size(); ++c) {
-	    	projPointsInt.push_back( cv::Point2i( (int) projPoints[c].x, (int) projPoints[c].y ) );
-	    }
-	}
-	
-	if (seen) {
-		ppts[0] = &projPointsInt[0];
+	    	projPointsInt[0][c] = (cv::Point2i) projPoints[c] ;
+		}
+		const cv::Point2i* ppts[1] = { projPointsInt[0] };
+
 		cv::fillPoly(*frame,ppts,nCorners,1,color);
-		cout <<"drawn square"<<endl;
 	}
 }

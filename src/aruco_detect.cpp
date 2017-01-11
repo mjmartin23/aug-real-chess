@@ -27,7 +27,7 @@ or implied, of Rafael Muñoz Salinas.
 ********************************************************************************************/
 
 /*
-$ ../bin/{detect,game} live -c ../data/webcam_calibration.yml  -s 4.2 -d ARUCO_MIP_16h3
+$ ../bin/{detect,game} live -c ../data/webcam_calibration.yml  -s 4.25 -d ARUCO_MIP_16h3
 */
 
 #include <string>
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
         ///////////  OPEN VIDEO
         // read from camera or from  file
         if (TheInputVideo.find("live") != string::npos) {
-            int vIdx = 0;
+            int vIdx = 1;
             // check if the :idx is here
             char cad[100];
             if (TheInputVideo.find(":") != string::npos) {
@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
             TheCameraParameters.resize(TheInputImage.size());
 
         MDetector.setDictionary(TheDictionary);//sets the dictionary to be employed (ARUCO,APRILTAGS,ARTOOLKIT,etc)
-        MDetector.setThresholdParams(7, 6);
+        MDetector.setThresholdParams(5,9);
         MDetector.setThresholdParamRange(2, 0);
 
         //gui requirements : the trackbars to change this parameters
@@ -177,22 +177,22 @@ int main(int argc, char **argv) {
             //         points.push_back( Point3f(-2.55f,0.f,0.f));
             //         points.push_back( Point3f(2.55f,0.f,0.f));
 
-            //         // points.push_back( Point3f(1.015f,-1.015f,0.f));
-            //         // points.push_back( Point3f(1.015f,-1.015f,1.015f)); 
+            //         points.push_back( Point3f(1.015f,-1.015f,0.f));
+            //         points.push_back( Point3f(1.015f,-1.015f,1.015f)); 
 
-            //         // points.push_back( Point3f(-1.015f,1.015f,0.f));
-            //         // points.push_back( Point3f(-1.015f,1.015f,1.015f)); 
+            //         points.push_back( Point3f(-1.015f,1.015f,0.f));
+            //         points.push_back( Point3f(-1.015f,1.015f,1.015f)); 
 
-            //         // points.push_back( Point3f(1.015f,1.015f,0.f));
-            //         // points.push_back( Point3f(1.015f,1.015f,1.015f));
+            //         points.push_back( Point3f(1.015f,1.015f,0.f));
+            //         points.push_back( Point3f(1.015f,1.015f,1.015f));
 
             //         cv::projectPoints(points,rvec,tvec,cam_matrix,dist,proj_points);
 
             //         // draw axes at point
             //         cv::arrowedLine(TheInputImageCopy,proj_points[0],proj_points[1],Scalar(255,0,0),2);
-            //         // cv::arrowedLine(TheInputImageCopy,proj_points[2],proj_points[3],Scalar(0,255,0),4);
-            //         // cv::arrowedLine(TheInputImageCopy,proj_points[4],proj_points[5],Scalar(0,0,255),4);
-            //         // cv::arrowedLine(TheInputImageCopy,proj_points[6],proj_points[7],Scalar(255,255,0),4);
+            //         cv::arrowedLine(TheInputImageCopy,proj_points[2],proj_points[3],Scalar(0,255,0),4);
+            //         cv::arrowedLine(TheInputImageCopy,proj_points[4],proj_points[5],Scalar(0,0,255),4);
+            //         cv::arrowedLine(TheInputImageCopy,proj_points[6],proj_points[7],Scalar(255,255,0),4);
             //     }
 
 

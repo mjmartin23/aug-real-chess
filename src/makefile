@@ -36,7 +36,7 @@ imod: imgMod.o
 board: Board.o Video.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
-aruco: aruco_testing.o
+testing: aruco_testing.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
 detect: aruco_detect.o 
