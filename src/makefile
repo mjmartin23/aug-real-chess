@@ -10,7 +10,7 @@ CXX = $(CC)
 #CFLAGS = -I/opt/local/include -I../include
 
 # Dwarf include paths
-CFLAGS := $(shell pkg-config --cflags opencv) -I../include # opencv includes are in /usr/include
+CFLAGS := -I/usr/local/include/opencv -I/usr/local/include -I/usr/include -I../include # opencv includes are in /usr/include
 CXXFLAGS = $(CFLAGS)
 
 # OSX Library paths
@@ -23,7 +23,7 @@ CXXFLAGS = $(CFLAGS)
 #LDLIBS = -lopencv_core -lopencv_highgui -lopencv_video -lopencv_videoio -lopencv_imgproc -lopencv_imgcodecs
 
 # Dwarf libraries
-LDLIBS := $(shell pkg-config --libs opencv) -laruco
+LDLIBS := $(shell pkg-config --libs opencv) -laruco -lGL -lGLU -lglut
 
 BINDIR = ../bin
 

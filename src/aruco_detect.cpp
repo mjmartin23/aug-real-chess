@@ -27,7 +27,7 @@ or implied, of Rafael Muñoz Salinas.
 ********************************************************************************************/
 
 /*
-$ ../bin/{detect,game} live -c ../data/webcam_calibration.yml  -s 4.25 -d ARUCO_MIP_16h3
+$ ../bin/{detect,game} live -c ../data/logitech_calibration.yml  -s 4.25 -d ARUCO_MIP_16h3
 */
 
 #include <string>
