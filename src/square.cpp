@@ -73,7 +73,7 @@ void Square::setCorners() {
 void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, cv::Mat cameraDistortion) {
 	if (marker != nullptr) {
 		int nCorners[] = {4};
-		//seen = true;
+		seen = true;
 		projPoints.clear();
 		
 		cv::projectPoints(corners,marker->Rvec,marker->Tvec,cameraMatrix,cameraDistortion,projPoints);
@@ -81,8 +81,10 @@ void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, c
 	    for (int c = 0; c < projPoints.size(); ++c) {
 	    	projPointsInt[0][c] = (cv::Point2i) projPoints[c] ;
 		}
-		const cv::Point2i* ppts[1] = { projPointsInt[0] };
+	}
 
+	if (seen) {
+		const cv::Point2i* ppts[1] = { projPointsInt[0] };
 		cv::fillPoly(*frame,ppts,nCorners,1,color);
 	}
 }

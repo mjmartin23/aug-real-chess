@@ -14,19 +14,20 @@ public:
 	Square(int,int,int);
 	void draw(cv::Mat *, aruco::Marker *, cv::Mat, cv::Mat);
 
+	int markerId;
+
 private:
 	void setCorners();
 	void setColor();
 
 	bool seen;
-	int row,col,markerId;
-	int *nCorners;
+	int row,col;
+	//int nCorners;
 	
 	cv::Scalar color;
-	std::tuple<int,int> positionOnMarker;
 	std::vector<cv::Point3f> corners;
 	std::vector<cv::Point2f> projPoints;
-	std::vector<cv::Point2i> projPointsInt;
-	std::vector<cv::Point2i> lastProjPointsInt;
-	cv::Mat rvec,tvec;
+	cv::Point2i projPointsInt[1][4];
+	//std::vector<cv::Point2i> lastProjPointsInt;
+	//cv::Mat rvec,tvec;
 };
