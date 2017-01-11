@@ -22,6 +22,7 @@ private:
 
 	bool seen;
 	int row,col;
+	int lastSeen;
 	//int nCorners;
 	
 	cv::Scalar color;

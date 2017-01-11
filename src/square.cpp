@@ -9,11 +9,9 @@ Square::Square(int coln, int rown, int marker) {
 	col = coln; 
 	row = rown;
 	markerId = marker;
-	//cout <<"made square at"<<col<<','<<row<<','<<markerId<<endl;
-
-	//int c = 4;
 	
 	seen = false;
+	lastSeen = 0;
 	setCorners();
 	setColor();
 }
@@ -72,8 +70,8 @@ void Square::setCorners() {
 
 void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, cv::Mat cameraDistortion) {
 	if (marker != nullptr) {
-		int nCorners[] = {4};
 		seen = true;
+		lastSeen = 0;
 		projPoints.clear();
 		
 		cv::projectPoints(corners,marker->Rvec,marker->Tvec,cameraMatrix,cameraDistortion,projPoints);
@@ -81,9 +79,12 @@ void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, c
 	    for (int c = 0; c < projPoints.size(); ++c) {
 	    	projPointsInt[0][c] = (cv::Point2i) projPoints[c] ;
 		}
+	} else {
+		lastSeen++;
 	}
 
-	if (seen) {
+	if (seen && lastSeen < 3) {
+		int nCorners[] = {4};
 		const cv::Point2i* ppts[1] = { projPointsInt[0] };
 		cv::fillPoly(*frame,ppts,nCorners,1,color);
 	}
