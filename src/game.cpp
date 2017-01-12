@@ -42,6 +42,7 @@ or implied, of Rafael Muñoz Salinas.
 #endif
 #include <opencv2/opencv.hpp>
 #include "aruco/aruco.h"
+#include "board.h"
 using namespace cv;
 using namespace aruco;
 
@@ -54,6 +55,9 @@ VideoCapture TheVideoCapturer;
 vector<Marker> TheMarkers;
 Mat TheInputImage,TheUndInputImage,TheResizedImage;
 CameraParameters TheCameraParams;
+
+Board board;
+
 Size TheGlWindowSize;
 bool TheCaptureFlag=true;
 bool readIntrinsicFile(string TheIntrinsicFile,Mat & TheIntriscCameraMatrix,Mat &TheDistorsionCameraParams,Size size);
@@ -63,6 +67,7 @@ void vIdle();
 void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void initialize();
+void drawThing(vector<Marker>);
 
 
 /************************************
@@ -76,7 +81,7 @@ bool readArguments ( int argc,char **argv )
 {
     if (argc!=4) {
         cerr<<"Invalid number of arguments"<<endl;
-        cerr<<"Usage: (in.avi|live)  intrinsics.yml   size "<<endl;
+        cerr<<"Usage: (in.avi|live)  intrinsics.yml (../data/logitech_calibration.yml)   size (0.0425)"<<endl;
         return false;
     }
     TheInputVideo=argv[1];
@@ -140,6 +145,7 @@ int main(int argc,char **argv)
 
 
 void initialize() {
+    board = Board(TheCameraParams,TheMarkerSize);
     //lighting
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
     glEnable(GL_LIGHTING);
@@ -224,19 +230,21 @@ void vDrawScene()
     glOrtho(0.0, TheGlWindowSize.width, 0.0, TheGlWindowSize.height, -1.0, 1.0);
 
     //colors
-    GLfloat black[] = {0.0,0.0,0.0,1.0};
-    GLfloat red[] = {1.0,0.0,0.0,1.0};
-    GLfloat green[] = {0.0,1.0,0.0,1.0};
-    GLfloat blue[] = {0.0,0.0,1.0,1.0};
-    GLfloat white[] = {1.0,1.0,1.0,1.0};
-    GLfloat grey[] = {0.5,0.5,0.5,1.0};
-    GLfloat lowAmbient[] = {0.2,0.2,0.2,1.0};
+    // GLfloat black[] = {0.0,0.0,0.0,1.0};
+    // GLfloat red[] = {1.0,0.0,0.0,1.0};
+    // GLfloat green[] = {0.0,1.0,0.0,1.0};
+    // GLfloat blue[] = {0.0,0.0,1.0,1.0};
+    // GLfloat white[] = {1.0,1.0,1.0,1.0};
+    // GLfloat grey[] = {0.5,0.5,0.5,1.0};
+    // GLfloat lowAmbient[] = {0.2,0.2,0.2,1.0};
 
     glViewport(0, 0, TheGlWindowSize.width , TheGlWindowSize.height);
     glDisable(GL_TEXTURE_2D);
     glPixelZoom( 1, -1);
     glRasterPos3f( 0, TheGlWindowSize.height  - 0.5, -1.0 );
     glDrawPixels ( TheGlWindowSize.width , TheGlWindowSize.height , GL_RGB , GL_UNSIGNED_BYTE , TheResizedImage.ptr(0) );
+
+
     ///Set the appropriate projection matrix so that rendering is done in a enrvironment
     //like the real camera (without distorsion)
     glMatrixMode(GL_PROJECTION);
@@ -247,9 +255,62 @@ void vDrawScene()
 
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
+
+    // glEnable(GL_DEPTH_TEST);
+    // glShadeModel(GL_SMOOTH);
+    // //now, for each marker,
+    // double modelview_matrix[16];
+    // for (unsigned int m=0;m<TheMarkers.size();m++)
+    // {
+    //     if (m == 0) {
+    //         glMaterialfv(GL_FRONT,GL_AMBIENT,black);
+    //         glMaterialfv(GL_FRONT,GL_DIFFUSE,grey);
+    //         glMaterialfv(GL_FRONT,GL_SPECULAR,white);
+    //         glMaterialf(GL_FRONT,GL_SHININESS,128.0);
+    //         glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
+
+
+    //         TheMarkers[m].glGetModelViewMatrix(modelview_matrix);
+    //         glMatrixMode(GL_MODELVIEW);
+    //         glLoadIdentity();
+    //         glLoadMatrixd(modelview_matrix);
+
+
+    //         //axis(TheMarkerSize);
+
+    //         //glColor3f(0.4,0.4,0.4);
+    //         glTranslatef(0, 0, TheMarkerSize/2);
+    //         glRotatef(90.f,1.f,0.f,0.f);
+    //         glPushMatrix();
+    //         //glutWireCube( TheMarkerSize );
+    //         glutSolidTeapot(TheMarkerSize/2 );  
+    //         glPopMatrix();
+    //     }
+    // }
+
+    board.update(TheMarkers);
+    //drawThing(TheMarkers);
+
+    glutSwapBuffers();
+
+}
+
+
+void drawThing(vector<Marker> markers) {
+    GLfloat black[] = {0.0,0.0,0.0,1.0};
+    GLfloat red[] = {1.0,0.0,0.0,1.0};
+    GLfloat green[] = {0.0,1.0,0.0,1.0};
+    GLfloat blue[] = {0.0,0.0,1.0,1.0};
+    GLfloat white[] = {1.0,1.0,1.0,1.0};
+    GLfloat grey[] = {0.5,0.5,0.5,1.0};
+    GLfloat lowAmbient[] = {0.2,0.2,0.2,1.0};
+
+
+    glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
     //now, for each marker,
     double modelview_matrix[16];
-    for (unsigned int m=0;m<TheMarkers.size();m++)
+    for (unsigned int m=0;m<markers.size();m++)
     {
         if (m == 0) {
             glMaterialfv(GL_FRONT,GL_AMBIENT,black);
@@ -259,26 +320,20 @@ void vDrawScene()
             glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
 
 
-            TheMarkers[m].glGetModelViewMatrix(modelview_matrix);
+            markers[m].glGetModelViewMatrix(modelview_matrix);
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
             glLoadMatrixd(modelview_matrix);
-
-
-            //axis(TheMarkerSize);
 
             //glColor3f(0.4,0.4,0.4);
             glTranslatef(0, 0, TheMarkerSize/2);
             glRotatef(90.f,1.f,0.f,0.f);
             glPushMatrix();
-            //glutWireCube( TheMarkerSize );
+            //glutWireCube( markerSize );
             glutSolidTeapot(TheMarkerSize/2 );  
             glPopMatrix();
         }
     }
-
-    glutSwapBuffers();
-
 }
 
 

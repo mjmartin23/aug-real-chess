@@ -39,10 +39,10 @@ board: Board.o Video.o
 testing: aruco_testing.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
-detect: aruco_detect.o 
+detect: aruco_detect.o board.o square.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
-game: aruco_detect.o board.o square.o
+game: game.o board.o square.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
 clean:
