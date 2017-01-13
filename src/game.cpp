@@ -39,10 +39,14 @@ or implied, of Rafael Muñoz Salinas.
 #else
 #include <GL/gl.h>
 #include <GL/glut.h>
+// #include <GL/glew.h>
+// #include <GL/glfw.h>
 #endif
 #include <opencv2/opencv.hpp>
 #include "aruco/aruco.h"
 #include "board.h"
+//#include "glm/glm.hpp"
+#include "objloader.hpp"
 using namespace cv;
 using namespace aruco;
 
@@ -68,6 +72,7 @@ void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void initialize();
 void drawThing(vector<Marker>);
+void drawObj(string);
 
 
 /************************************
@@ -253,45 +258,64 @@ void vDrawScene()
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
 
-    glEnable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
 
-    // glEnable(GL_DEPTH_TEST);
-    // glShadeModel(GL_SMOOTH);
-    // //now, for each marker,
-    // double modelview_matrix[16];
-    // for (unsigned int m=0;m<TheMarkers.size();m++)
-    // {
-    //     if (m == 0) {
-    //         glMaterialfv(GL_FRONT,GL_AMBIENT,black);
-    //         glMaterialfv(GL_FRONT,GL_DIFFUSE,grey);
-    //         glMaterialfv(GL_FRONT,GL_SPECULAR,white);
-    //         glMaterialf(GL_FRONT,GL_SHININESS,128.0);
-    //         glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
-
-
-    //         TheMarkers[m].glGetModelViewMatrix(modelview_matrix);
-    //         glMatrixMode(GL_MODELVIEW);
-    //         glLoadIdentity();
-    //         glLoadMatrixd(modelview_matrix);
-
-
-    //         //axis(TheMarkerSize);
-
-    //         //glColor3f(0.4,0.4,0.4);
-    //         glTranslatef(0, 0, TheMarkerSize/2);
-    //         glRotatef(90.f,1.f,0.f,0.f);
-    //         glPushMatrix();
-    //         //glutWireCube( TheMarkerSize );
-    //         glutSolidTeapot(TheMarkerSize/2 );  
-    //         glPopMatrix();
-    //     }
-    // }
 
     board.update(TheMarkers);
     //drawThing(TheMarkers);
+    //drawOBJ("../data/pieces/BishopBlack.obj");
 
     glutSwapBuffers();
+
+}
+
+
+void drawOBJ(const char* filename) {
+    // Read our .obj file
+    std::vector<cv::Point3f> vertices;
+    std::vector<cv::Point2f> uvs;
+    std::vector<cv::Point3f> normals; // Won't be used at the moment.
+    bool res = loadOBJ(filename, vertices, uvs, normals);
+
+    // Load it into a VBO
+
+    GLuint vertexbuffer;
+    glGenBuffers(1, &vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(cv::Point3f), &vertices[0], GL_STATIC_DRAW);
+
+    GLuint uvbuffer;
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(cv::Point2f), &uvs[0], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glVertexAttribPointer(
+        0,                  // attribute
+        3,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        0,                  // stride
+        (void*)0            // array buffer offset
+    );
+
+    // 2nd attribute buffer : UVs
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glVertexAttribPointer(
+        1,                                // attribute
+        2,                                // size
+        GL_FLOAT,                         // type
+        GL_FALSE,                         // normalized?
+        0,                                // stride
+        (void*)0                          // array buffer offset
+    );
+
+    // Draw the triangle !
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
 }
 
@@ -360,6 +384,7 @@ void vIdle()
         PPDetector.detect(TheUndInputImage,TheMarkers, TheCameraParams.CameraMatrix,Mat(),TheMarkerSize,false);
         //resize the image to the size of the GL window
         cv::resize(TheUndInputImage,TheResizedImage,TheGlWindowSize);
+        
     }
     glutPostRedisplay();
 }

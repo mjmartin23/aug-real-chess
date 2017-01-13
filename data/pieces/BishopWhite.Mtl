@@ -1,0 +1,13 @@
+# Created By Carrara 7.0
+
+newmtl Bishop
+ Ns 19
+ d 0.99
+ Ni 0.001
+ illum 2
+ Ka 0 0 0
+ Kd 0.980392 0.960784 0.858824
+ Ks 0.17094 0.17094 0.17094
+ map_Kd Bishop.jpg
+ map_Bump Bishop1.jpg
+

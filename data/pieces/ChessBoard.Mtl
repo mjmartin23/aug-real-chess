@@ -1,0 +1,13 @@
+# Created By Carrara 7.0
+
+newmtl Chess_Board
+ Ns 10
+ d 1
+ Ni 0.001
+ illum 2
+ Ka 0 0 0
+ Kd 0.960784 0.941177 0.929412
+ Ks 0.25 0.25 0.25
+ map_Kd Chess_Board.jpg
+ map_Bump Chess_Board1.jpg
+

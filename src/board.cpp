@@ -21,10 +21,10 @@ Board::Board(aruco::CameraParameters camParams) {
 	generateSquares();
 }
 
-Board::Board(aruco::CameraParameters camParams, float markerSize) {
+Board::Board(aruco::CameraParameters camParams, float markerSizeParam) {
 	cameraMatrix = camParams.CameraMatrix;
 	cameraDistortion = camParams.Distorsion;
-	markerSize = markerSize;
+	markerSize = markerSizeParam;
 	size = std::make_tuple(8,8);
 
 	pairMarkersWithBoardPositions(); 
@@ -72,7 +72,7 @@ void Board::pairMarkersWithBoardPositions() {
 
 
 void Board::update(cv::Mat *frame,std::vector<aruco::Marker> visibleMarkers) {
-	cout << "Updating board" << endl;
+	//cout << "Updating board" << endl;
 	markers = visibleMarkers;
 
 	// draw squares
@@ -87,6 +87,7 @@ void Board::update(cv::Mat *frame,std::vector<aruco::Marker> visibleMarkers) {
 }
 
 void Board::update(std::vector<aruco::Marker> visibleMarkers) {
+	markers = visibleMarkers;
 	GLfloat black[] = {0.0,0.0,0.0,1.0};
     GLfloat red[] = {1.0,0.0,0.0,1.0};
     GLfloat green[] = {0.0,1.0,0.0,1.0};
@@ -96,7 +97,8 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
     GLfloat lowAmbient[] = {0.2,0.2,0.2,1.0};
 
 
-	
+	glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
     //now, for each marker,
     double modelview_matrix[16];
     for (unsigned int m=0;m<markers.size();m++)
@@ -106,7 +108,7 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
             glMaterialfv(GL_FRONT,GL_DIFFUSE,grey);
             glMaterialfv(GL_FRONT,GL_SPECULAR,white);
             glMaterialf(GL_FRONT,GL_SHININESS,128.0);
-            glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
+            glLightfv(GL_LIGHT0,GL_AMBIENT,lowAmbient);
 
 
             markers[m].glGetModelViewMatrix(modelview_matrix);
@@ -114,7 +116,9 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
             glLoadIdentity();
             glLoadMatrixd(modelview_matrix);
 
+
             //glColor3f(0.4,0.4,0.4);
+
             glTranslatef(0, 0, markerSize/2);
             glRotatef(90.f,1.f,0.f,0.f);
             glPushMatrix();
@@ -122,24 +126,24 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
             glutSolidTeapot(markerSize/2 );  
             glPopMatrix();
         }
-        float size = markerSize/2;
-        glColor3f (1,0,0 );
-	    glBegin(GL_LINES);
-	    glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
-	    glVertex3f(size,0.0f, 0.0f); // ending point of the line
-	    glEnd( );
+     //    float size = markerSize/2;
+     //    glColor3f (1,0,0 );
+	    // glBegin(GL_LINES);
+	    // glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
+	    // glVertex3f(size,0.0f, 0.0f); // ending point of the line
+	    // glEnd( );
 
-	    glColor3f ( 0,1,0 );
-	    glBegin(GL_LINES);
-	    glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
-	    glVertex3f( 0.0f,size, 0.0f); // ending point of the line
-	    glEnd( );
+	    // glColor3f ( 0,1,0 );
+	    // glBegin(GL_LINES);
+	    // glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
+	    // glVertex3f(0.0f, size, 0.0f); // ending point of the line
+	    // glEnd( );
 
 
-	    glColor3f (0,0,1 );
-	    glBegin(GL_LINES);
-	    glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
-	    glVertex3f(0.0f, 0.0f, size); // ending point of the line
-	    glEnd( );
+	    // glColor3f (0,0,1 );
+	    // glBegin(GL_LINES);
+	    // glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
+	    // glVertex3f(0.0f, 0.0f, size); // ending point of the line
+	    // glEnd( );
     }
 }
