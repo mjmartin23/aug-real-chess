@@ -5,8 +5,6 @@ Board class
 */
 
 #include "board.h"
-#include "GL/gl.h"
-#include "GL/glut.h"
 
 Board::Board() {
 
@@ -16,6 +14,7 @@ Board::Board(aruco::CameraParameters camParams) {
 	cameraMatrix = camParams.CameraMatrix;
 	cameraDistortion = camParams.Distorsion;
 	size = std::make_tuple(8,8);
+	obj = OBJLoader("../data/models/bishop.obj");
 
 	pairMarkersWithBoardPositions(); 
 	generateSquares();
@@ -123,27 +122,33 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
             glRotatef(90.f,1.f,0.f,0.f);
             glPushMatrix();
             //glutWireCube( markerSize );
-            glutSolidTeapot(markerSize/2 );  
+            //glutSolidTeapot(markerSize/2 );
+            drawOBJ();
             glPopMatrix();
         }
-     //    float size = markerSize/2;
-     //    glColor3f (1,0,0 );
-	    // glBegin(GL_LINES);
-	    // glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
-	    // glVertex3f(size,0.0f, 0.0f); // ending point of the line
-	    // glEnd( );
-
-	    // glColor3f ( 0,1,0 );
-	    // glBegin(GL_LINES);
-	    // glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
-	    // glVertex3f(0.0f, size, 0.0f); // ending point of the line
-	    // glEnd( );
-
-
-	    // glColor3f (0,0,1 );
-	    // glBegin(GL_LINES);
-	    // glVertex3f(0.0f, 0.0f, 0.0f); // origin of the line
-	    // glVertex3f(0.0f, 0.0f, size); // ending point of the line
-	    // glEnd( );
     }
+}
+
+void Board::drawOBJ() {
+    // Read our .obj file
+    
+    verts.clear();
+    norms.clear();
+    faces.clear();
+    obj.load(&verts,&norms,&faces);
+
+    cout<<faces.size()<<endl;
+    glBegin(GL_TRIANGLES);
+    for (int i = 0; i < faces.size(); ++i) {
+
+        glNormal3f(norms[(faces[i].vn1-1)].x, norms[(faces[i].vn1-1)].y, norms[(faces[i].vn1-1)].z);
+        glVertex3f(verts[(faces[i].v1-1)].x, verts[(faces[i].v1-1)].y, verts[(faces[i].v1-1)].z);
+
+        glNormal3f(norms[(faces[i].vn2-1)].x, norms[(faces[i].vn2-1)].y, norms[(faces[i].vn2-1)].z);
+        glVertex3f(verts[(faces[i].v2-1)].x, verts[(faces[i].v2-1)].y, verts[(faces[i].v2-1)].z);
+
+        glNormal3f(norms[(faces[i].vn3-1)].x, norms[(faces[i].vn3-1)].y, norms[(faces[i].vn3-1)].z);
+        glVertex3f(verts[(faces[i].v3-1)].x, verts[(faces[i].v3-1)].y, verts[(faces[i].v3-1)].z);
+    }
+    glEnd();
 }

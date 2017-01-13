@@ -5,6 +5,9 @@
 #include "opencv2/opencv.hpp"
 #include "aruco/aruco.h"
 #include "square.h"
+#include "GL/gl.h"
+#include "GL/glut.h"
+#include "objloader.h"
 
 
 class Board {
@@ -21,10 +24,15 @@ public:
 private:
 	void pairMarkersWithBoardPositions();
 	void generateSquares();
-	aruco::Marker* getMarkerById(int id);
+	aruco::Marker* getMarkerById(int);
+	void drawOBJ();
 
 	cv::Mat frame, cameraMatrix, cameraDistortion;
 	std::vector<aruco::Marker> markers;
 	std::tuple<int,int> size;
+	OBJLoader obj;
+	std::vector<Vertex> verts;
+    std::vector<NormalVector> norms;
+    std::vector<Face> faces;
 	float markerSize;
 };

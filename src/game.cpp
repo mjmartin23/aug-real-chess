@@ -46,7 +46,7 @@ or implied, of Rafael Muñoz Salinas.
 #include "aruco/aruco.h"
 #include "board.h"
 //#include "glm/glm.hpp"
-#include "objloader.hpp"
+//#include "objloader.h"
 using namespace cv;
 using namespace aruco;
 
@@ -72,7 +72,7 @@ void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void initialize();
 void drawThing(vector<Marker>);
-void drawObj(string);
+void drawOBJ(const char *);
 
 
 /************************************
@@ -262,7 +262,7 @@ void vDrawScene()
 
     board.update(TheMarkers);
     //drawThing(TheMarkers);
-    //drawOBJ("../data/pieces/BishopBlack.obj");
+    //drawOBJ("../data/models/bishop.obj");
 
     glutSwapBuffers();
 
@@ -271,51 +271,64 @@ void vDrawScene()
 
 void drawOBJ(const char* filename) {
     // Read our .obj file
-    std::vector<cv::Point3f> vertices;
-    std::vector<cv::Point2f> uvs;
-    std::vector<cv::Point3f> normals; // Won't be used at the moment.
-    bool res = loadOBJ(filename, vertices, uvs, normals);
+    // OBJLoader obj = OBJLoader(filename);
+    // std::vector<Vertex> verts;
+    // std::vector<NormalVector> norms;
+    // std::vector<Face> faces;
+    // obj.load(verts,norms,faces);
 
-    // Load it into a VBO
+    // // Load it into a VBO
+    // glBegin(GL_TRIANGLES);
+    // for (int i = 0; i < faces.size(); ++i) {
+    //     glNormal3f(norms[(faces[i].vn1-1)].x, norms[(faces[i].vn1-1)].y, norms[(faces[i].vn1-1)].z);
+    //     glVertex3f(verts[(faces[i].v1-1)].x, verts[(faces[i].v1-1)].y, verts[(faces[i].v1-1)].z);
 
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(cv::Point3f), &vertices[0], GL_STATIC_DRAW);
+    //     glNormal3f(norms[(faces[i].vn2-1)].x, norms[(faces[i].vn2-1)].y, norms[(faces[i].vn2-1)].z);
+    //     glVertex3f(verts[(faces[i].v2-1)].x, verts[(faces[i].v2-1)].y, verts[(faces[i].v2-1)].z);
 
-    GLuint uvbuffer;
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(cv::Point2f), &uvs[0], GL_STATIC_DRAW);
+    //     glNormal3f(norms[(faces[i].vn3-1)].x, norms[(faces[i].vn3-1)].y, norms[(faces[i].vn3-1)].z);
+    //     glVertex3f(verts[(faces[i].v3-1)].x, verts[(faces[i].v3-1)].y, verts[(faces[i].v3-1)].z);
+    // }
+    // glEnd();
 
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glVertexAttribPointer(
-        0,                  // attribute
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        (void*)0            // array buffer offset
-    );
+    // GLuint vertexbuffer;
+    // glGenBuffers(1, &vertexbuffer);
+    // glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    // glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(cv::Point3f), &vertices[0], GL_STATIC_DRAW);
 
-    // 2nd attribute buffer : UVs
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glVertexAttribPointer(
-        1,                                // attribute
-        2,                                // size
-        GL_FLOAT,                         // type
-        GL_FALSE,                         // normalized?
-        0,                                // stride
-        (void*)0                          // array buffer offset
-    );
+    // GLuint uvbuffer;
+    // glGenBuffers(1, &uvbuffer);
+    // glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    // glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(cv::Point2f), &uvs[0], GL_STATIC_DRAW);
 
-    // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
+    // glEnableVertexAttribArray(0);
+    // glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    // glVertexAttribPointer(
+    //     0,                  // attribute
+    //     3,                  // size
+    //     GL_FLOAT,           // type
+    //     GL_FALSE,           // normalized?
+    //     0,                  // stride
+    //     (void*)0            // array buffer offset
+    // );
 
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
+    // // 2nd attribute buffer : UVs
+    // glEnableVertexAttribArray(1);
+    // glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    // glVertexAttribPointer(
+    //     1,                                // attribute
+    //     2,                                // size
+    //     GL_FLOAT,                         // type
+    //     GL_FALSE,                         // normalized?
+    //     0,                                // stride
+    //     (void*)0                          // array buffer offset
+    // );
+
+    // // Draw the triangle !
+    // glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
+
+    // glDisableVertexAttribArray(0);
+    // glDisableVertexAttribArray(1);
 
 }
 

@@ -42,7 +42,7 @@ testing: aruco_testing.o
 detect: aruco_detect.o board.o square.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
-game: game.o board.o square.o
+game: game.o board.o square.o objloader.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
 obj: objloader.o
