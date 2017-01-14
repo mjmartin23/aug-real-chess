@@ -35,12 +35,14 @@ class OBJLoader {
 public:
 	OBJLoader();
 	OBJLoader(const char *);
+	OBJLoader(const char * ,std::vector<Vertex> *, std::vector<NormalVector> *, std::vector<Face> *);
+
 	void load(std::vector < Vertex > *, std::vector<NormalVector>*, std::vector<Face>*);
 
 private:
 	std::vector<std::string> split(string, string);
 
-	string file;
+	const char * file;
 	string line;
 
 };

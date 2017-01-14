@@ -31,19 +31,19 @@ authors and should not be interpreted as representing official policies, either 
 or implied, of Rafael Muñoz Salinas.
 ********************************/
 #include <iostream>
-
 #include <fstream>
 #include <sstream>
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
+
+//#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
-// #include <GL/glew.h>
 // #include <GL/glfw.h>
-#endif
+//#define GL_GLEXT_PROTOTYPES
+//#include <GL/glext.h>
+
 #include <opencv2/opencv.hpp>
 #include "aruco/aruco.h"
+
 #include "board.h"
 //#include "glm/glm.hpp"
 //#include "objloader.h"
@@ -72,7 +72,6 @@ void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void initialize();
 void drawThing(vector<Marker>);
-void drawOBJ(const char *);
 
 
 /************************************
@@ -125,6 +124,9 @@ int main(int argc,char **argv)
         TheCameraParams.resize(TheInputImage.size());
 
         glutInit(&argc, argv);
+
+        //glewInit();
+
         glutInitWindowPosition( 0, 0);
         glutInitWindowSize(TheInputImage.size().width,TheInputImage.size().height);
         glutInitDisplayMode( GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE );
@@ -165,7 +167,7 @@ void initialize() {
     glLightfv(GL_LIGHT0,GL_SPECULAR, qaSpecularLight);
 
     //light position
-    GLfloat qaLightPosition[] = {0.0,0.0,0.0,1.0};
+    GLfloat qaLightPosition[] = {50.0,0.0,0.0,1.0};
     glLightfv(GL_LIGHT0, GL_POSITION, qaLightPosition);
 }
 
@@ -234,15 +236,6 @@ void vDrawScene()
     glLoadIdentity();
     glOrtho(0.0, TheGlWindowSize.width, 0.0, TheGlWindowSize.height, -1.0, 1.0);
 
-    //colors
-    // GLfloat black[] = {0.0,0.0,0.0,1.0};
-    // GLfloat red[] = {1.0,0.0,0.0,1.0};
-    // GLfloat green[] = {0.0,1.0,0.0,1.0};
-    // GLfloat blue[] = {0.0,0.0,1.0,1.0};
-    // GLfloat white[] = {1.0,1.0,1.0,1.0};
-    // GLfloat grey[] = {0.5,0.5,0.5,1.0};
-    // GLfloat lowAmbient[] = {0.2,0.2,0.2,1.0};
-
     glViewport(0, 0, TheGlWindowSize.width , TheGlWindowSize.height);
     glDisable(GL_TEXTURE_2D);
     glPixelZoom( 1, -1);
@@ -258,8 +251,6 @@ void vDrawScene()
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
 
-
-
     board.update(TheMarkers);
     //drawThing(TheMarkers);
     //drawOBJ("../data/models/bishop.obj");
@@ -268,69 +259,6 @@ void vDrawScene()
 
 }
 
-
-void drawOBJ(const char* filename) {
-    // Read our .obj file
-    // OBJLoader obj = OBJLoader(filename);
-    // std::vector<Vertex> verts;
-    // std::vector<NormalVector> norms;
-    // std::vector<Face> faces;
-    // obj.load(verts,norms,faces);
-
-    // // Load it into a VBO
-    // glBegin(GL_TRIANGLES);
-    // for (int i = 0; i < faces.size(); ++i) {
-    //     glNormal3f(norms[(faces[i].vn1-1)].x, norms[(faces[i].vn1-1)].y, norms[(faces[i].vn1-1)].z);
-    //     glVertex3f(verts[(faces[i].v1-1)].x, verts[(faces[i].v1-1)].y, verts[(faces[i].v1-1)].z);
-
-    //     glNormal3f(norms[(faces[i].vn2-1)].x, norms[(faces[i].vn2-1)].y, norms[(faces[i].vn2-1)].z);
-    //     glVertex3f(verts[(faces[i].v2-1)].x, verts[(faces[i].v2-1)].y, verts[(faces[i].v2-1)].z);
-
-    //     glNormal3f(norms[(faces[i].vn3-1)].x, norms[(faces[i].vn3-1)].y, norms[(faces[i].vn3-1)].z);
-    //     glVertex3f(verts[(faces[i].v3-1)].x, verts[(faces[i].v3-1)].y, verts[(faces[i].v3-1)].z);
-    // }
-    // glEnd();
-
-    // GLuint vertexbuffer;
-    // glGenBuffers(1, &vertexbuffer);
-    // glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    // glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(cv::Point3f), &vertices[0], GL_STATIC_DRAW);
-
-    // GLuint uvbuffer;
-    // glGenBuffers(1, &uvbuffer);
-    // glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    // glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(cv::Point2f), &uvs[0], GL_STATIC_DRAW);
-
-    // glEnableVertexAttribArray(0);
-    // glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    // glVertexAttribPointer(
-    //     0,                  // attribute
-    //     3,                  // size
-    //     GL_FLOAT,           // type
-    //     GL_FALSE,           // normalized?
-    //     0,                  // stride
-    //     (void*)0            // array buffer offset
-    // );
-
-    // // 2nd attribute buffer : UVs
-    // glEnableVertexAttribArray(1);
-    // glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    // glVertexAttribPointer(
-    //     1,                                // attribute
-    //     2,                                // size
-    //     GL_FLOAT,                         // type
-    //     GL_FALSE,                         // normalized?
-    //     0,                                // stride
-    //     (void*)0                          // array buffer offset
-    // );
-
-    // // Draw the triangle !
-    // glDrawArrays(GL_TRIANGLES, 0, vertices.size() );
-
-    // glDisableVertexAttribArray(0);
-    // glDisableVertexAttribArray(1);
-
-}
 
 
 void drawThing(vector<Marker> markers) {

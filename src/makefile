@@ -23,7 +23,7 @@ CXXFLAGS = $(CFLAGS)
 #LDLIBS = -lopencv_core -lopencv_highgui -lopencv_video -lopencv_videoio -lopencv_imgproc -lopencv_imgcodecs
 
 # Dwarf libraries
-LDLIBS := $(shell pkg-config --libs opencv) -laruco -lGL -lGLU -lglut
+LDLIBS := $(shell pkg-config --libs opencv) -laruco -lGLEW -lGLU -lGL -lglut
 
 BINDIR = ../bin
 

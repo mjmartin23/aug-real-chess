@@ -13,6 +13,12 @@ OBJLoader::OBJLoader(const char * filename) {
 	file = filename;
 }
 
+OBJLoader::OBJLoader(const char * filename,std::vector<Vertex> *verts, std::vector<NormalVector> *norms, std::vector<Face> *faces) {
+	file = filename;
+	cout<<"reading in OBJ: "<<file<<endl;
+	load(verts,norms,faces);
+}
+
 std::vector<std::string> OBJLoader::split(std::string str, string delimiter) {
 	size_t pos = 0;
 	std::string token;
@@ -60,9 +66,10 @@ void OBJLoader::load(std::vector<Vertex> *verts, std::vector<NormalVector> *norm
 		} else {
 			cerr<<"invalid first string "<<splitLine[0]<<endl;
 		}
-		
-		//myFile.close();
+		//cout<<verts->size()<<","<<norms->size()<<","<<faces->size()<<endl;
 	}
+	//myFile.close();
+	cout<<"end of load"<<endl;
 }
 
 // int main(int argc, char const *argv[])

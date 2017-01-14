@@ -109,3 +109,7 @@ void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, c
 		// cv::ellipse(*frame,rect,cv::Scalar(255,0,0),-1);
 	}
 }
+
+void Square::draw(aruco::Marker marker) {
+	double modelview_matrix[16];
+}

@@ -13,6 +13,7 @@ class Square {
 public:
 	Square(int,int,int);
 	void draw(cv::Mat *, aruco::Marker *, cv::Mat, cv::Mat);
+	void draw(aruco::Marker);
 
 	int markerId;
 
