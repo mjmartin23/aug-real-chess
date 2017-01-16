@@ -19,19 +19,70 @@ Board::Board(aruco::CameraParameters camParams, float markerSizeParam) {
 	//obj = OBJLoader("../data/models/bishop.obj",&verts,&norms,&faces);
 	//cout<<"back in board"<<endl;
 	pairMarkersWithBoardPositions(); 
-	generateSquares();
+	generateSquaresandPieces();
 }
 
-void Board::generateSquares() {
+void Board::generateSquaresandPieces() {
 	for (int i = 0; i < std::get<0>(size); ++i) {
 		for (int j = 0; j < std::get<1>(size); ++j) {
 			std::tuple<int,int> pos = std::make_tuple(j,i);
-			Piece* p = new Piece(1,markerSize,"../data/models/bishop.obj");
+			Piece* p = determinePieceType(j,i);
 			Square* sq = new Square(j,i,
-									markerBoardPositions[std::make_tuple(j/2,i/2)],markerSize,
+									markerBoardPositions[std::make_tuple(j/2,i/2)],
+									markerSize,
 									p);
 			squares[pos] = sq;
+			cout<<"gen square at "<<i<<","<<j<<endl;
 		}
+	}
+}
+
+Piece* Board::determinePieceType(int j, int i) {
+	int team;
+	if (i == 0 || i == 1) {
+		//white team
+		team = 1;
+		if (i == 0) {
+			//back row
+			if (j == 0 || j == 7) {
+				// rook
+				return new Rook(team,markerSize);
+			} else if (j == 1 || j == 6) {
+				return new Knight(team,markerSize);
+			} else if (j == 2 || j == 5) {
+				return new Bishop(team,markerSize);
+			} else if (j == 3) {
+				return new King(team,markerSize);
+			} else {
+				return new Queen(team,markerSize);
+			}
+		} else {
+			//pawns
+			return new Pawn(team,markerSize);
+		}
+	} else if (i == 6 || i == 7) {
+		//black team
+		team = 0;
+		if (i == 7) {
+			//back row
+			if (j == 0 || j == 7) {
+				return new Rook(team,markerSize);
+			} else if (j == 1 || j == 6) {
+				return new Knight(team,markerSize);
+			} else if (j == 2 || j == 5) {
+				return new Bishop(team,markerSize);
+			} else if (j == 3) {
+				return new King(team,markerSize);
+			} else {
+				return new Queen(team,markerSize);
+			}
+		} else {
+			//pawns
+			return new Pawn(team,markerSize);
+		}
+	} else {
+		//cout<<"assigning nullptr "<<j<<i<<endl;
+		return nullptr;
 	}
 }
 
@@ -46,22 +97,22 @@ aruco::Marker* Board::getMarkerById(int id) {
 
 void Board::pairMarkersWithBoardPositions() {
 	// generate dictionary for wuick lookup of which marker is in which position
-	markerBoardPositions[std::make_tuple(0,0)] = 86;
-	markerBoardPositions[std::make_tuple(1,0)] = 79;
-	markerBoardPositions[std::make_tuple(2,0)] = 58;
-	markerBoardPositions[std::make_tuple(3,0)] = 81;
-	markerBoardPositions[std::make_tuple(0,1)] = 213;
-	markerBoardPositions[std::make_tuple(1,1)] = 73;
-	markerBoardPositions[std::make_tuple(2,1)] = 152;
-	markerBoardPositions[std::make_tuple(3,1)] = 63;
-	markerBoardPositions[std::make_tuple(0,2)] = 163;
-	markerBoardPositions[std::make_tuple(1,2)] = 30;
-	markerBoardPositions[std::make_tuple(2,2)] = 113;
-	markerBoardPositions[std::make_tuple(3,2)] = 192;
-	markerBoardPositions[std::make_tuple(0,3)] = 69;
-	markerBoardPositions[std::make_tuple(1,3)] = 144;
-	markerBoardPositions[std::make_tuple(2,3)] = 206;
-	markerBoardPositions[std::make_tuple(3,3)] = 244;
+	markerBoardPositions[std::make_tuple(0,0)] = 244;
+	markerBoardPositions[std::make_tuple(1,0)] = 206;
+	markerBoardPositions[std::make_tuple(2,0)] = 144;
+	markerBoardPositions[std::make_tuple(3,0)] = 69;
+	markerBoardPositions[std::make_tuple(0,1)] = 192;
+	markerBoardPositions[std::make_tuple(1,1)] = 113;
+	markerBoardPositions[std::make_tuple(2,1)] = 30;
+	markerBoardPositions[std::make_tuple(3,1)] = 163;
+	markerBoardPositions[std::make_tuple(0,2)] = 63;
+	markerBoardPositions[std::make_tuple(1,2)] = 152;
+	markerBoardPositions[std::make_tuple(2,2)] = 73;
+	markerBoardPositions[std::make_tuple(3,2)] = 213;
+	markerBoardPositions[std::make_tuple(0,3)] = 81;
+	markerBoardPositions[std::make_tuple(1,3)] = 58;
+	markerBoardPositions[std::make_tuple(2,3)] = 79;
+	markerBoardPositions[std::make_tuple(3,3)] = 86;
 }
 
 
@@ -91,7 +142,6 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
 			}
 		}
 	}
-
 }
 
 // void Board::update(std::vector<aruco::Marker> visibleMarkers) {

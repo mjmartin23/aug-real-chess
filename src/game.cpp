@@ -109,7 +109,7 @@ int main(int argc,char **argv)
     {//parse arguments
         if (readArguments (argc,argv)==false) return 0;
         //read from camera
-        if (TheInputVideo=="live") TheVideoCapturer.open(1);
+        if (TheInputVideo=="live") TheVideoCapturer.open(0);
         else TheVideoCapturer.open(TheInputVideo);
         if (!TheVideoCapturer.isOpened())
         {
@@ -168,7 +168,7 @@ void initialize() {
     glLightfv(GL_LIGHT0,GL_SPECULAR, qaSpecularLight);
 
     //light position
-    GLfloat qaLightPosition[] = {0.0,0.0,0.0,1.0};
+    GLfloat qaLightPosition[] = {0.5,0.5,0.2,1.0};
     glLightfv(GL_LIGHT0, GL_POSITION, qaLightPosition);
     cout<<"initialized"<<endl;
 }
@@ -254,7 +254,7 @@ void vDrawScene()
     glLoadMatrixd(proj_matrix);
 
 
-    cout<<"updating board"<<endl;
+    //cout<<"updating board"<<endl;
 
     board.update(TheMarkers);
     //drawThing(TheMarkers);

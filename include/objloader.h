@@ -3,15 +3,15 @@ Jan 13, 2016
 OBJ loader header
 */
 
-// #include <iostream>
-// #include <vector>
+#include <iostream>
+#include <vector>
 // #include <stdio.h>
-// #include <string>
+#include <string>
 // #include <stdlib.h>
-// #include <fstream>
-// #include <GL/gl.h>
-// #include <GL/glut.h>
-// using namespace std;
+#include <fstream>
+#include <GL/gl.h>
+#include <GL/glut.h>
+using namespace std;
 
 
  struct NormalVector

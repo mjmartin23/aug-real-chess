@@ -15,7 +15,6 @@ OBJLoader::OBJLoader(const char * filename) {
 
 OBJLoader::OBJLoader(const char * filename,std::vector<Vertex> *verts, std::vector<NormalVector> *norms, std::vector<Face> *faces) {
 	file = filename;
-	cout<<"reading in OBJ: "<<file<<endl;
 	load(verts,norms,faces);
 }
 
@@ -25,7 +24,6 @@ std::vector<std::string> OBJLoader::split(std::string str, string delimiter) {
 	std::vector<std::string> splitted;
 	while ((pos = str.find(delimiter)) != std::string::npos) {
 	    token = str.substr(0, pos);
-	    //cout<<str<<endl;
 	    splitted.push_back( token );
 	    str.erase(0, pos + delimiter.length());
 	}
@@ -36,9 +34,7 @@ std::vector<std::string> OBJLoader::split(std::string str, string delimiter) {
 void OBJLoader::load(std::vector<Vertex> *verts, std::vector<NormalVector> *norms, std::vector<Face> *faces) {
 	ifstream myFile(file);
 	while (std::getline(myFile,line)) {
-		//cout<<"here"<<endl;
 		std::vector<std::string> splitLine = split(line," ");
-		//for(int i=0;i<splitLine.size();i++) cout<<splitLine[i]<<endl;
 		if (splitLine[0] == "#") {
 			continue;
 		} else if (splitLine[0] == "v") {
@@ -66,10 +62,8 @@ void OBJLoader::load(std::vector<Vertex> *verts, std::vector<NormalVector> *norm
 		} else {
 			cerr<<"invalid first string "<<splitLine[0]<<endl;
 		}
-		//cout<<verts->size()<<","<<norms->size()<<","<<faces->size()<<endl;
 	}
 	//myFile.close();
-	cout<<"end of load"<<endl;
 }
 
 // int main(int argc, char const *argv[])

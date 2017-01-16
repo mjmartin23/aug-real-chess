@@ -21,7 +21,8 @@ public:
 
 private:
 	void pairMarkersWithBoardPositions();
-	void generateSquares();
+	void generateSquaresandPieces();
+	Piece* determinePieceType(int, int );
 	aruco::Marker* getMarkerById(int);
 	//void drawOBJ();
 

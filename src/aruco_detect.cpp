@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
         ///////////  OPEN VIDEO
         // read from camera or from  file
         if (TheInputVideo.find("live") != string::npos) {
-            int vIdx = 1;
+            int vIdx = 0;
             // check if the :idx is here
             char cad[100];
             if (TheInputVideo.find(":") != string::npos) {
@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
 
         // ME
 
-        Board board = Board(TheCameraParameters);
+        Board board = Board(TheCameraParameters,TheMarkerSize);
         //
 
         // capture until press ESC or until the end of the video
@@ -150,7 +150,7 @@ int main(int argc, char **argv) {
 
             for (unsigned int i = 0; i < TheMarkers.size(); i++) {
                 //cout << TheMarkers[i]<<endl;
-                //TheMarkers[i].draw(TheInputImageCopy, Scalar(0, 0, 255));
+                TheMarkers[i].draw(TheInputImageCopy, Scalar(0, 0, 255));
             }
 
             // draw a 3d cube in each marker if there is 3d info
@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
 
             // MY WORK STARTING HERE
 
-            board.update(&TheInputImageCopy,TheMarkers);
+            //board.update(&TheInputImageCopy,TheMarkers);
 
             // cv::Mat rvec,tvec,cam_matrix,dist;
             // cam_matrix = TheCameraParameters.CameraMatrix;

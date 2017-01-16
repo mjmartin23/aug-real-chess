@@ -7,17 +7,16 @@ Piece class
 
 Piece::Piece() { }
 
-Piece::Piece(int teamNum,float markerSizeParam, const char * objfile) {
+Piece::Piece(int teamNum,float markerSizeParam) {
 	team = teamNum;
 	scale = markerSizeParam / 6.0;
-	obj = OBJLoader(objfile,&verts,&norms,&faces);
 	setColor();
 }
 
 void Piece::setColor() {
 	if (team == 1) {
 		// draw white piece
-		color[0] = 0.9; color[1] = 0.9; color[2] = 0.9; color[3] = 1.0;
+		color[0] = 0.98; color[1] = 0.98; color[2] = 0.98; color[3] = 1.0;
 	} else {
 		// draw black piece
 		color[0] = 0.1; color[1] = 0.1; color[2] = 0.1; color[3] = 1.0;
@@ -77,4 +76,35 @@ void Piece::draw(aruco::Marker* marker, std::vector<cv::Point3f> corners ) {
     }
     glEnd();
     glPopMatrix();
+}
+
+
+King::King(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
+	objPath = "../data/models/king.obj";
+	obj = OBJLoader(objPath,&verts,&norms,&faces);
+}
+
+Queen::Queen(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
+	objPath = "../data/models/queen.obj";
+	obj = OBJLoader(objPath,&verts,&norms,&faces);
+}
+
+Bishop::Bishop(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
+	objPath = "../data/models/bishop.obj";
+	obj = OBJLoader(objPath,&verts,&norms,&faces);
+}
+
+Knight::Knight(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
+	objPath = "../data/models/knight.obj";
+	obj = OBJLoader(objPath,&verts,&norms,&faces);
+}
+
+Rook::Rook(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
+	objPath = "../data/models/rook.obj";
+	obj = OBJLoader(objPath,&verts,&norms,&faces);
+}
+
+Pawn::Pawn(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
+	objPath = "../data/models/pawn.obj";
+	obj = OBJLoader(objPath,&verts,&norms,&faces);
 }

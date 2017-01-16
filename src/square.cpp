@@ -13,7 +13,7 @@ Square::Square(int coln, int rown, int marker,float markerSizeParam,Piece *myPie
 	markerId = marker;
 	markerSize = markerSizeParam;
 	piece = myPiece;
-	isOccupied = piece == nullptr ? false : true;
+	isOccupied = (piece == nullptr) ? false : true;
 	seen = false;
 	lastSeen = 0;
 	setCorners();
@@ -26,7 +26,7 @@ void Square::setColor() {
 		color[0] = 0.98; color[1] = 0.98; color[2] = 0.98; color[3] = 1.0;
 	} else {
 		// draw black square
-		color[0] = 0.1; color[1] = 0.1; color[2] = 0.1; color[3] = 1.0;
+		color[0] = 0.01; color[1] = 0.01; color[2] = 0.01; color[3] = 1.0;
 	}
 	grey[0] = 0.5; grey[1] = 0.5; grey[2] = 0.5; grey[3] = 1.0;
     lowAmbient[0] = 0.2; lowAmbient[1] = 0.2; lowAmbient[2] = 0.2; lowAmbient[3] = 1.0;
