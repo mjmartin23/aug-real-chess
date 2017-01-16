@@ -43,6 +43,8 @@ or implied, of Rafael Muñoz Salinas.
 
 #include <opencv2/opencv.hpp>
 #include "aruco/aruco.h"
+#include "aruco/posetracker.h"
+#include "aruco/cvdrawingutils.h"
 
 #include "board.h"
 //#include "square.h"
@@ -53,6 +55,7 @@ using namespace aruco;
 
 string TheInputVideo;
 string TheIntrinsicFile;
+string MapConfigFile;
 bool The3DInfoAvailable=false;
 float TheMarkerSize=-1;
 MarkerDetector PPDetector;
@@ -60,6 +63,9 @@ VideoCapture TheVideoCapturer;
 vector<Marker> TheMarkers;
 Mat TheInputImage,TheUndInputImage,TheResizedImage;
 CameraParameters TheCameraParams;
+
+MarkerMap TheMarkerMap;//configuration of the map
+MarkerMapPoseTracker MSPoseTracker;
 
 Board board;
 
@@ -73,6 +79,7 @@ void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void initialize();
 void drawThing(vector<Marker>);
+void modelView(double[],cv::Mat,cv::Mat);
 
 
 /************************************
@@ -84,14 +91,15 @@ void drawThing(vector<Marker>);
 
 bool readArguments ( int argc,char **argv )
 {
-    if (argc!=4) {
+    if (argc!=5) {
         cerr<<"Invalid number of arguments"<<endl;
-        cerr<<"Usage: (in.avi|live)  intrinsics.yml (../data/logitech_calibration.yml)   size (0.0425)"<<endl;
+        cerr<<"Usage: (in.avi|live)  marker_map_config.yml intrinsics.yml (../data/logitech_calibration.yml)   size (0.0425)"<<endl;
         return false;
     }
     TheInputVideo=argv[1];
-    TheIntrinsicFile=argv[2];
-    TheMarkerSize=atof(argv[3]);
+    MapConfigFile=argv[2];
+    TheIntrinsicFile=argv[3];
+    TheMarkerSize=atof(argv[4]);
     return true;
 }
 
@@ -118,16 +126,23 @@ int main(int argc,char **argv)
 
         }
 
+        TheMarkerMap.readFromFile(MapConfigFile);
+        if ( TheMarkerMap.isExpressedInPixels() && TheMarkerSize>0) {
+            TheMarkerMap=TheMarkerMap.convertToMeters(TheMarkerSize);
+        }
+        PPDetector.setDictionary(TheMarkerMap.getDictionary());
+
         //read first image
         TheVideoCapturer>>TheInputImage;
         //read camera paramters if passed
         TheCameraParams.readFromXMLFile(TheIntrinsicFile);
         TheCameraParams.resize(TheInputImage.size());
 
+        if ( TheMarkerMap.isExpressedInMeters() && TheCameraParams.isValid()) {
+            MSPoseTracker.setParams(TheCameraParams,TheMarkerMap);
+        }
+
         glutInit(&argc, argv);
-
-        //glewInit();
-
         glutInitWindowPosition( 0, 0);
         glutInitWindowSize(TheInputImage.size().width,TheInputImage.size().height);
         glutInitDisplayMode( GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE );
@@ -153,7 +168,7 @@ int main(int argc,char **argv)
 
 
 void initialize() {
-    board = Board(TheCameraParams,TheMarkerSize);
+    board = Board(TheCameraParams,TheMarkerSize*1.25);
     //lighting
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
     glEnable(GL_LIGHTING);
@@ -252,11 +267,32 @@ void vDrawScene()
     TheCameraParams.glGetProjectionMatrix(TheInputImage.size(),TheGlWindowSize,proj_matrix,0.05,10);
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
+    
+    if ( !MSPoseTracker.estimatePose(TheMarkers)) {//if pose correctly computed, print the reference system
+        cerr<<"marker map pose not correctly computed"<<endl;
+        return;
+    }
+
+    double modelview_matrix[16];
+    modelView(modelview_matrix,MSPoseTracker.getRvec().t(),MSPoseTracker.getTvec().t());
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixd(modelview_matrix);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_NORMALIZE);
+    glShadeModel(GL_SMOOTH);
+    
+    glPushMatrix();
+    //axis(TheMarkerSize*1.2);
+    board.update();
+    glPopMatrix();
+
 
 
     //cout<<"updating board"<<endl;
-
-    board.update(TheMarkers);
+    //axis(TheMarkerSize);
+    //board.update(TheMarkers);
     //drawThing(TheMarkers);
     //drawOBJ("../data/models/bishop.obj");
 
@@ -296,7 +332,7 @@ void drawThing(vector<Marker> markers) {
             glLoadMatrixd(modelview_matrix);
 
             //glColor3f(0.4,0.4,0.4);
-            glTranslatef(0, 0, TheMarkerSize/2);
+            glTranslatef(0, 0, 0);
             //glRotatef(90.f,1.f,0.f,0.f);
             glPushMatrix();
             glBegin(GL_POLYGON);
@@ -307,6 +343,57 @@ void drawThing(vector<Marker> markers) {
             glEnd();
             glPopMatrix();
         }
+    }
+}
+
+void modelView(double modelview_matrix[],cv::Mat Rvec,cv::Mat Tvec) {
+    bool invalid = false;
+    for (int i = 0; i < 3 && !invalid; i++) {
+        if (Tvec.at< float >(i, 0) != -999999)
+            invalid |= false;
+        if (Rvec.at< float >(i, 0) != -999999)
+            invalid |= false;
+    }
+    if (invalid)
+        throw cv::Exception(9002, "extrinsic parameters are not set", "modelView()", __FILE__, __LINE__);
+
+    cv::Mat Rot(3, 3, CV_32FC1), Jacob;
+    cv::Rodrigues(Rvec, Rot, Jacob);
+
+    double para[3][4];
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 3; j++)
+            para[i][j] = Rot.at< float >(i, j);
+    // now, add the translation
+    para[0][3] = Tvec.at< float >(0, 0);
+    para[1][3] = Tvec.at< float >(1, 0);
+    para[2][3] = Tvec.at< float >(2, 0);
+    double scale = 1;
+
+    modelview_matrix[0 + 0 * 4] = para[0][0];
+    // R1C2
+    modelview_matrix[0 + 1 * 4] = para[0][1];
+    modelview_matrix[0 + 2 * 4] = para[0][2];
+    modelview_matrix[0 + 3 * 4] = para[0][3];
+    // R2
+    modelview_matrix[1 + 0 * 4] = para[1][0];
+    modelview_matrix[1 + 1 * 4] = para[1][1];
+    modelview_matrix[1 + 2 * 4] = para[1][2];
+    modelview_matrix[1 + 3 * 4] = para[1][3];
+    // R3
+    modelview_matrix[2 + 0 * 4] = -para[2][0];
+    modelview_matrix[2 + 1 * 4] = -para[2][1];
+    modelview_matrix[2 + 2 * 4] = -para[2][2];
+    modelview_matrix[2 + 3 * 4] = -para[2][3];
+
+    modelview_matrix[3 + 0 * 4] = 0.0;
+    modelview_matrix[3 + 1 * 4] = 0.0;
+    modelview_matrix[3 + 2 * 4] = 0.0;
+    modelview_matrix[3 + 3 * 4] = 1.0;
+    if (scale != 0.0) {
+        modelview_matrix[12] *= scale;
+        modelview_matrix[13] *= scale;
+        modelview_matrix[14] *= scale;
     }
 }
 
@@ -329,9 +416,9 @@ void vIdle()
         //remove distorion in image
         cv::undistort(TheInputImage,TheUndInputImage, TheCameraParams.CameraMatrix, TheCameraParams.Distorsion);
         //detect markers
-        aruco::Dictionary::DICT_TYPES  TheDictionary = Dictionary::getTypeFromString( "ARUCO_MIP_16h3" );
-        PPDetector.setDictionary(TheDictionary);
         PPDetector.detect(TheUndInputImage,TheMarkers, TheCameraParams.CameraMatrix,Mat(),TheMarkerSize,false);
+        //TheMarkers=PPDetector.detect(TheUndInputImage);
+        //detect the 3d camera location wrt the markerset (if possible)
         //resize the image to the size of the GL window
         cv::resize(TheUndInputImage,TheResizedImage,TheGlWindowSize);
         

@@ -10,13 +10,11 @@ Square class for chessboard
 // #include <iostream>
 #include "piece.h"
 
-#define HALF_SQUARE 1.275f
-
 class Square {
 public:
 	Square(int,int,int,float,Piece*);
-	void draw(aruco::Marker*);
-	void drawPiece(aruco::Marker*);
+	void draw();
+	void drawPiece();
 
 	int markerId;
 	bool isOccupied;
@@ -31,6 +29,6 @@ private:
 	
 	GLfloat color[4],grey[4],lowAmbient[4],white[4];
 	std::vector<cv::Point3f> corners;
-	float markerSize;
+	float squareSize;
 	Piece* piece;
 };

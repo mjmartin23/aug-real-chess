@@ -116,9 +116,8 @@ void Board::pairMarkersWithBoardPositions() {
 }
 
 
-void Board::update(std::vector<aruco::Marker> visibleMarkers) {
+void Board::update() {
 	//cout << "Updating board" << endl;
-	markers = visibleMarkers;
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
@@ -127,8 +126,7 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
 		for (int j = 0; j < std::get<1>(size); ++j) {
 			std::tuple<int,int> pos = std::make_tuple(j,i);
 			Square *square = squares[pos];
-			aruco::Marker* m = getMarkerById(square->markerId);
-			square->draw(m);
+			square->draw();
 		}
 	}
 	//draw pieces
@@ -136,9 +134,9 @@ void Board::update(std::vector<aruco::Marker> visibleMarkers) {
 		for (int j = 0; j < std::get<1>(size); ++j) {
 			std::tuple<int,int> pos = std::make_tuple(j,i);
 			Square *square = squares[pos];
-			aruco::Marker* m = getMarkerById(square->markerId);
+			//aruco::Marker* m = getMarkerById(square->markerId);
 			if (square->isOccupied) {
-				square->drawPiece(m);
+				square->drawPiece();
 			}
 		}
 	}

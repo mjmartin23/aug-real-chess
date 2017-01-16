@@ -11,7 +11,7 @@ Square::Square(int coln, int rown, int marker,float markerSizeParam,Piece *myPie
 	col = coln; 
 	row = rown;
 	markerId = marker;
-	markerSize = markerSizeParam;
+	squareSize = markerSizeParam/2.0;
 	piece = myPiece;
 	isOccupied = (piece == nullptr) ? false : true;
 	seen = false;
@@ -34,78 +34,32 @@ void Square::setColor() {
 }
 
 void Square::setCorners() {
-	float minx,maxx,miny,maxy;
-	switch (col % 2) {
-		case 0:
-			switch (row % 2) {
-				case 0:
-					minx = -2.0;
-					maxx = 0.;
-					miny = -2.0;
-					maxy = 0.;
-					break;
-				case 1:
-					minx = 0.;
-					maxx = 2.;
-					miny = -2.0;
-					maxy = 0.;
-					break;
-			}
-			break;
-		case 1:
-			switch (row % 2) {
-				case 0:
-					minx = -2.0;
-					maxx = 0.;
-					miny = 0.;
-					maxy = 2.0;
-					break;
-				case 1:
-					minx = 0.;
-					maxx = 2.;
-					miny = 0.;
-					maxy = 2.0;
-					break;
-			}
-			break;
-	}
-	corners.push_back(cv::Point3f(minx*HALF_SQUARE,miny*HALF_SQUARE,0.f));
-	corners.push_back(cv::Point3f(maxx*HALF_SQUARE,miny*HALF_SQUARE,0.f));
-	corners.push_back(cv::Point3f(maxx*HALF_SQUARE,maxy*HALF_SQUARE,0.f));
-	corners.push_back(cv::Point3f(minx*HALF_SQUARE,maxy*HALF_SQUARE,0.f));
+	corners.push_back(cv::Point3f((col-4)*squareSize,(row-4)*squareSize,0.f));
+	corners.push_back(cv::Point3f((col-3)*squareSize,(row-4)*squareSize,0.f));
+	corners.push_back(cv::Point3f((col-3)*squareSize,(row-3)*squareSize,0.f));
+	corners.push_back(cv::Point3f((col-4)*squareSize,(row-3)*squareSize,0.f));
 }
 
 
-void Square::draw(aruco::Marker* marker) {
-	if (marker == nullptr) return;
+void Square::draw() {
 
+	//set color
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,color);
     glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,grey);
     glMaterialfv(GL_FRONT,GL_SPECULAR,white);
     glMaterialf(GL_FRONT,GL_SHININESS,128.0);
     glLightfv(GL_LIGHT0,GL_AMBIENT,lowAmbient);
 
-	double modelview_matrix[16];
-
-    marker->glGetModelViewMatrix(modelview_matrix);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glLoadMatrixd(modelview_matrix);
-
-
-    glTranslatef(0,0,0);
-    glPushMatrix();
     // draw square
     
     glBegin(GL_POLYGON);
-    glVertex3f(markerSize/4.15*corners[0].x,markerSize/4.15*corners[0].y,markerSize/4.15*corners[0].z);
-    glVertex3f(markerSize/4.15*corners[1].x,markerSize/4.15*corners[1].y,markerSize/4.15*corners[1].z);
-    glVertex3f(markerSize/4.15*corners[2].x,markerSize/4.15*corners[2].y,markerSize/4.15*corners[2].z);
-    glVertex3f(markerSize/4.15*corners[3].x,markerSize/4.15*corners[3].y,markerSize/4.15*corners[3].z);
+    glVertex3f(corners[0].x,corners[0].y,corners[0].z);
+    glVertex3f(corners[1].x,corners[1].y,corners[1].z);
+    glVertex3f(corners[2].x,corners[2].y,corners[2].z);
+    glVertex3f(corners[3].x,corners[3].y,corners[3].z);
     glEnd();
-    glPopMatrix();
 }
 
-void Square::drawPiece(aruco::Marker* marker) {
-	this->piece->draw(marker,corners);
+void Square::drawPiece() {
+	this->piece->draw(corners);
 }

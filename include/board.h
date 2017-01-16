@@ -14,7 +14,7 @@ class Board {
 public:
 	Board();
 	Board( aruco::CameraParameters, float );
-	void update( std::vector<aruco::Marker>  );
+	void update(  );
 
 	std::map<std::tuple<int,int>,int> markerBoardPositions;
 	std::map<std::tuple<int,int>,Square*> squares;
