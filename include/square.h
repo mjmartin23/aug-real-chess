@@ -5,17 +5,21 @@ Square class for chessboard
 
 #include "aruco/aruco.h"
 #include "opencv2/opencv.hpp"
-#include <iostream>
+#include "GL/gl.h"
+#include "GL/glut.h"
+// #include <iostream>
+#include "piece.h"
 
 #define HALF_SQUARE 1.275f
 
 class Square {
 public:
-	Square(int,int,int);
-	void draw(cv::Mat *, aruco::Marker *, cv::Mat, cv::Mat);
-	void draw(aruco::Marker);
+	Square(int,int,int,float,Piece*);
+	void draw(aruco::Marker*);
+	void drawPiece(aruco::Marker*);
 
 	int markerId;
+	bool isOccupied;
 
 private:
 	void setCorners();
@@ -24,12 +28,9 @@ private:
 	bool seen;
 	int row,col;
 	int lastSeen;
-	//int nCorners;
 	
-	cv::Scalar color;
+	GLfloat color[4],grey[4],lowAmbient[4],white[4];
 	std::vector<cv::Point3f> corners;
-	std::vector<cv::Point2f> projPoints;
-	cv::Point2i projPointsInt[1][4];
-	//std::vector<cv::Point2i> lastProjPointsInt;
-	//cv::Mat rvec,tvec;
+	float markerSize;
+	Piece* piece;
 };

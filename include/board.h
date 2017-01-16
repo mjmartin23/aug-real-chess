@@ -2,22 +2,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "GL/gl.h"
+#include "GL/glut.h"
 #include "opencv2/opencv.hpp"
 #include "aruco/aruco.h"
 #include "square.h"
-#include "GL/gl.h"
-#include "GL/glut.h"
 
-#include "objloader.h"
 
 
 class Board {
 public:
 	Board();
-	Board( aruco::CameraParameters camParams  );
-	Board( aruco::CameraParameters camParams , float );
-	void update( cv::Mat*, std::vector<aruco::Marker> visibleMarkers);
-	void update( std::vector<aruco::Marker> visibleMarkers);
+	Board( aruco::CameraParameters, float );
+	void update( std::vector<aruco::Marker>  );
 
 	std::map<std::tuple<int,int>,int> markerBoardPositions;
 	std::map<std::tuple<int,int>,Square*> squares;
@@ -26,7 +23,7 @@ private:
 	void pairMarkersWithBoardPositions();
 	void generateSquares();
 	aruco::Marker* getMarkerById(int);
-	void drawOBJ();
+	//void drawOBJ();
 
 	cv::Mat frame, cameraMatrix, cameraDistortion;
 	std::vector<aruco::Marker> markers;

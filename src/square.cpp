@@ -7,11 +7,13 @@ Square class implementation
 
 #define max(a,b) a<b?b:a
 
-Square::Square(int coln, int rown, int marker) {
+Square::Square(int coln, int rown, int marker,float markerSizeParam,Piece *myPiece) {
 	col = coln; 
 	row = rown;
 	markerId = marker;
-	
+	markerSize = markerSizeParam;
+	piece = myPiece;
+	isOccupied = piece == nullptr ? false : true;
 	seen = false;
 	lastSeen = 0;
 	setCorners();
@@ -21,11 +23,14 @@ Square::Square(int coln, int rown, int marker) {
 void Square::setColor() {
 	if (( row + col ) % 2 == 0) {
 		// draw white square
-		color = cv::Scalar(200,200,200);
+		color[0] = 0.98; color[1] = 0.98; color[2] = 0.98; color[3] = 1.0;
 	} else {
 		// draw black square
-		color = cv::Scalar(20,20,20);
+		color[0] = 0.1; color[1] = 0.1; color[2] = 0.1; color[3] = 1.0;
 	}
+	grey[0] = 0.5; grey[1] = 0.5; grey[2] = 0.5; grey[3] = 1.0;
+    lowAmbient[0] = 0.2; lowAmbient[1] = 0.2; lowAmbient[2] = 0.2; lowAmbient[3] = 1.0;
+    white[0] = 1.0; white[1] = 1.0; white[2] = 1.0; white[3] = 1,0;
 }
 
 void Square::setCorners() {
@@ -70,46 +75,37 @@ void Square::setCorners() {
 	corners.push_back(cv::Point3f(minx*HALF_SQUARE,maxy*HALF_SQUARE,0.f));
 }
 
-void Square::draw(cv::Mat *frame, aruco::Marker* marker, cv::Mat cameraMatrix, cv::Mat cameraDistortion) {
-	if (marker != nullptr) {
-		seen = true;
-		lastSeen = 0;
-		projPoints.clear();
-		
-		cv::projectPoints(corners,marker->Rvec,marker->Tvec,cameraMatrix,cameraDistortion,projPoints);
 
-	    for (int c = 0; c < projPoints.size(); ++c) {
-	    	projPointsInt[0][c] = (cv::Point2i) projPoints[c] ;
-		}
-		
-	} else {
-		lastSeen++;
-	}
+void Square::draw(aruco::Marker* marker) {
+	if (marker == nullptr) return;
 
-	if (seen && lastSeen < 3) {
-		int nCorners[] = {4};
-		const cv::Point2i* ppts[1] = { projPointsInt[0] };
-		cv::fillPoly(*frame,ppts,nCorners,1,color);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,color);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,grey);
+    glMaterialfv(GL_FRONT,GL_SPECULAR,white);
+    glMaterialf(GL_FRONT,GL_SHININESS,128.0);
+    glLightfv(GL_LIGHT0,GL_AMBIENT,lowAmbient);
 
-		// temporaroly drawing pieces here
+	double modelview_matrix[16];
 
-		// cv::Point2f center = cv::Point2f(( projPoints[0].x+projPoints[2].x )/ 2.0, (projPoints[0].y+projPoints[2].y )/ 2.0);
-		// float width = max((abs(projPoints[0].x-projPoints[1].x)+
-		// 				   abs(projPoints[3].x-projPoints[2].x) ) / 2.0,
-		// 				  (abs(projPoints[1].x-projPoints[2].x)+
-		// 				   abs(projPoints[0].x-projPoints[3].x) ) / 2.0);
-		// float height = max((abs(projPoints[0].y-projPoints[3].y)+
-		// 					abs(projPoints[1].y-projPoints[2].y) ) / 2.0,
-		// 				   (abs(projPoints[0].y-projPoints[1].y)+
-		// 					abs(projPoints[3].y-projPoints[2].y) ) / 2.0);
-		// cv::Size2f size = cv::Size2f( width, height );
-		// float angle = atan2(projPoints[0].y - projPoints[1].y,
-		// 					projPoints[0].x - projPoints[1].x);
-		// const cv::RotatedRect rect = cv::RotatedRect(center,size,angle);
-		// cv::ellipse(*frame,rect,cv::Scalar(255,0,0),-1);
-	}
+    marker->glGetModelViewMatrix(modelview_matrix);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixd(modelview_matrix);
+
+
+    glTranslatef(0,0,0);
+    glPushMatrix();
+    // draw square
+    
+    glBegin(GL_POLYGON);
+    glVertex3f(markerSize/4.15*corners[0].x,markerSize/4.15*corners[0].y,markerSize/4.15*corners[0].z);
+    glVertex3f(markerSize/4.15*corners[1].x,markerSize/4.15*corners[1].y,markerSize/4.15*corners[1].z);
+    glVertex3f(markerSize/4.15*corners[2].x,markerSize/4.15*corners[2].y,markerSize/4.15*corners[2].z);
+    glVertex3f(markerSize/4.15*corners[3].x,markerSize/4.15*corners[3].y,markerSize/4.15*corners[3].z);
+    glEnd();
+    glPopMatrix();
 }
 
-void Square::draw(aruco::Marker marker) {
-	double modelview_matrix[16];
+void Square::drawPiece(aruco::Marker* marker) {
+	this->piece->draw(marker,corners);
 }

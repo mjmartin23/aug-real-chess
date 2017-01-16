@@ -33,20 +33,21 @@ or implied, of Rafael Muñoz Salinas.
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
+#include <stdio.h>
+#include <string>
+#include <stdlib.h>
 
-//#include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
-// #include <GL/glfw.h>
-//#define GL_GLEXT_PROTOTYPES
-//#include <GL/glext.h>
 
 #include <opencv2/opencv.hpp>
 #include "aruco/aruco.h"
 
 #include "board.h"
-//#include "glm/glm.hpp"
-//#include "objloader.h"
+//#include "square.h"
+
+using namespace std;
 using namespace cv;
 using namespace aruco;
 
@@ -167,8 +168,9 @@ void initialize() {
     glLightfv(GL_LIGHT0,GL_SPECULAR, qaSpecularLight);
 
     //light position
-    GLfloat qaLightPosition[] = {50.0,0.0,0.0,1.0};
+    GLfloat qaLightPosition[] = {0.0,0.0,0.0,1.0};
     glLightfv(GL_LIGHT0, GL_POSITION, qaLightPosition);
+    cout<<"initialized"<<endl;
 }
 
 
@@ -251,6 +253,9 @@ void vDrawScene()
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
 
+
+    cout<<"updating board"<<endl;
+
     board.update(TheMarkers);
     //drawThing(TheMarkers);
     //drawOBJ("../data/models/bishop.obj");
@@ -292,10 +297,14 @@ void drawThing(vector<Marker> markers) {
 
             //glColor3f(0.4,0.4,0.4);
             glTranslatef(0, 0, TheMarkerSize/2);
-            glRotatef(90.f,1.f,0.f,0.f);
+            //glRotatef(90.f,1.f,0.f,0.f);
             glPushMatrix();
-            //glutWireCube( markerSize );
-            glutSolidTeapot(TheMarkerSize/2 );  
+            glBegin(GL_POLYGON);
+            glVertex3f(TheMarkerSize/2.0*0,TheMarkerSize/2.0*0,TheMarkerSize/2.0*0);
+            glVertex3f(TheMarkerSize/2.0*1,TheMarkerSize/2.0*0,TheMarkerSize/2.0*0);
+            glVertex3f(TheMarkerSize/2.0*1,TheMarkerSize/2.0*1,TheMarkerSize/2.0*0);
+            glVertex3f(TheMarkerSize/2.0*0,TheMarkerSize/2.0*1,TheMarkerSize/2.0*0);
+            glEnd();
             glPopMatrix();
         }
     }
