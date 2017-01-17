@@ -66,6 +66,7 @@ CameraParameters TheCameraParams;
 
 MarkerMap TheMarkerMap;//configuration of the map
 MarkerMapPoseTracker MSPoseTracker;
+string InputString;
 
 Board board;
 
@@ -77,6 +78,7 @@ void vDrawScene();
 void vIdle();
 void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
+void vKey(unsigned char key, int x, int y);
 void initialize();
 void drawThing(vector<Marker>);
 void modelView(double[],cv::Mat,cv::Mat);
@@ -126,6 +128,8 @@ int main(int argc,char **argv)
 
         }
 
+        InputString = "";
+
         TheMarkerMap.readFromFile(MapConfigFile);
         if ( TheMarkerMap.isExpressedInPixels() && TheMarkerSize>0) {
             TheMarkerMap=TheMarkerMap.convertToMeters(TheMarkerSize);
@@ -152,6 +156,7 @@ int main(int argc,char **argv)
         glutIdleFunc( vIdle );
         glutReshapeFunc( vResize );
         glutMouseFunc(vMouse);
+        glutKeyboardFunc( vKey );
         glClearColor( 0.0, 0.0, 0.0, 1.0 );
         glClearDepth( 1.0 );
         TheGlWindowSize=TheInputImage.size();
@@ -268,33 +273,23 @@ void vDrawScene()
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
     
-    if ( !MSPoseTracker.estimatePose(TheMarkers)) {//if pose correctly computed, print the reference system
-        cerr<<"marker map pose not correctly computed"<<endl;
-        return;
+    if ( !MSPoseTracker.estimatePose(TheMarkers)) {
+        //cerr<<"marker map pose not correctly computed"<<endl;
+    } else {
+        double modelview_matrix[16];
+        modelView(modelview_matrix,MSPoseTracker.getRvec().t(),MSPoseTracker.getTvec().t());
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glLoadMatrixd(modelview_matrix);
+
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_NORMALIZE);
+        glShadeModel(GL_SMOOTH);
+
+        glPushMatrix();
+        board.updateGraphics();
+        glPopMatrix();
     }
-
-    double modelview_matrix[16];
-    modelView(modelview_matrix,MSPoseTracker.getRvec().t(),MSPoseTracker.getTvec().t());
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glLoadMatrixd(modelview_matrix);
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_NORMALIZE);
-    glShadeModel(GL_SMOOTH);
-
-    glPushMatrix();
-    //axis(TheMarkerSize*1.2);
-    board.update();
-    glPopMatrix();
-
-
-
-    //cout<<"updating board"<<endl;
-    //axis(TheMarkerSize);
-    //board.update(TheMarkers);
-    //drawThing(TheMarkers);
-    //drawOBJ("../data/models/bishop.obj");
 
     glutSwapBuffers();
 
@@ -406,6 +401,7 @@ void modelView(double modelview_matrix[],cv::Mat Rvec,cv::Mat Tvec) {
  ************************************/
 void vIdle()
 {
+    //board.updateGame();
     if (TheCaptureFlag) {
         //capture image
         TheVideoCapturer.grab();
@@ -414,10 +410,9 @@ void vIdle()
         //transform color that by default is BGR to RGB because windows systems do not allow reading BGR images with opengl properly
         cv::cvtColor(TheInputImage,TheInputImage,CV_BGR2RGB);
         //remove distorion in image
-        cv::undistort(TheInputImage,TheUndInputImage, TheCameraParams.CameraMatrix, TheCameraParams.Distorsion);
+        cv::undistort(TheInputImage,TheUndInputImage,TheCameraParams.CameraMatrix, TheCameraParams.Distorsion);
         //detect markers
-        PPDetector.detect(TheUndInputImage,TheMarkers, TheCameraParams.CameraMatrix,Mat(),TheMarkerSize,false);
-        //TheMarkers=PPDetector.detect(TheUndInputImage);
+        PPDetector.detect(TheUndInputImage,TheMarkers,TheCameraParams.CameraMatrix,Mat(),TheMarkerSize,false);
         //detect the 3d camera location wrt the markerset (if possible)
         //resize the image to the size of the GL window
         cv::resize(TheUndInputImage,TheResizedImage,TheGlWindowSize);
@@ -426,6 +421,20 @@ void vIdle()
     glutPostRedisplay();
 }
 
+
+void vKey(unsigned char key, int x, int y) {
+    if (key == 13) {
+        cout<<"executing command: "<<InputString<<endl;
+        board.executeCommand(InputString);
+        InputString = "";
+    } else if (key == 8) {
+        InputString.erase(InputString.size() - 1);
+        cout<<InputString<<endl;
+    } else {
+        InputString += key;
+        cout<<InputString<<endl;
+    }
+}
 
 /************************************
  *

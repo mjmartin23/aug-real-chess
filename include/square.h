@@ -15,8 +15,11 @@ public:
 	Square(int,int,float,Piece*);
 	void draw();
 	void drawPiece();
+	void receivePiece(Piece*);
+	void removePiece();
 
 	bool isOccupied;
+	Piece* piece;
 
 private:
 	void setCorners();
@@ -27,5 +30,4 @@ private:
 	GLfloat color[4],grey[4],lowAmbient[4],white[4];
 	std::vector<cv::Point3f> corners;
 	float squareSize;
-	Piece* piece;
 };

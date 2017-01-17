@@ -18,7 +18,7 @@ Square::Square(int coln, int rown,float markerSizeParam, Piece *myPiece) {
 }
 
 void Square::setColor() {
-	if (( row + col ) % 2 == 0) {
+	if (( row + col ) % 2 == 1) {
 		// draw white square
 		color[0] = 0.98; color[1] = 0.98; color[2] = 0.98; color[3] = 1.0;
 	} else {
@@ -35,6 +35,16 @@ void Square::setCorners() {
 	corners.push_back(cv::Point3f((col-3)*squareSize,(row-4)*squareSize,0.f));
 	corners.push_back(cv::Point3f((col-3)*squareSize,(row-3)*squareSize,0.f));
 	corners.push_back(cv::Point3f((col-4)*squareSize,(row-3)*squareSize,0.f));
+}
+
+void Square::receivePiece(Piece* p) {
+	piece = p;
+	isOccupied = (piece == nullptr) ? false : true;
+}
+
+void Square::removePiece() {
+	piece = nullptr;
+	isOccupied = false;
 }
 
 
