@@ -168,7 +168,7 @@ int main(int argc,char **argv)
 
 
 void initialize() {
-    board = Board(TheCameraParams,TheMarkerSize*1.25);
+    board = Board(TheMarkerSize*1.25);
     //lighting
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
     glEnable(GL_LIGHTING);
@@ -282,7 +282,7 @@ void vDrawScene()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_NORMALIZE);
     glShadeModel(GL_SMOOTH);
-    
+
     glPushMatrix();
     //axis(TheMarkerSize*1.2);
     board.update();

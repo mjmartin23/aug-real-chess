@@ -13,25 +13,15 @@
 class Board {
 public:
 	Board();
-	Board( aruco::CameraParameters, float );
+	Board( float );
 	void update(  );
 
-	std::map<std::tuple<int,int>,int> markerBoardPositions;
 	std::map<std::tuple<int,int>,Square*> squares;
 
 private:
-	void pairMarkersWithBoardPositions();
 	void generateSquaresandPieces();
 	Piece* determinePieceType(int, int );
-	aruco::Marker* getMarkerById(int);
-	//void drawOBJ();
 
-	cv::Mat frame, cameraMatrix, cameraDistortion;
-	std::vector<aruco::Marker> markers;
 	std::tuple<int,int> size;
-	OBJLoader obj;
-	std::vector<Vertex> verts;
-    std::vector<NormalVector> norms;
-    std::vector<Face> faces;
 	float markerSize;
 };

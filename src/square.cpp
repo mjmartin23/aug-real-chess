@@ -7,15 +7,12 @@ Square class implementation
 
 #define max(a,b) a<b?b:a
 
-Square::Square(int coln, int rown, int marker,float markerSizeParam,Piece *myPiece) {
+Square::Square(int coln, int rown,float markerSizeParam, Piece *myPiece) {
 	col = coln; 
 	row = rown;
-	markerId = marker;
 	squareSize = markerSizeParam/2.0;
 	piece = myPiece;
 	isOccupied = (piece == nullptr) ? false : true;
-	seen = false;
-	lastSeen = 0;
 	setCorners();
 	setColor();
 }
@@ -45,13 +42,12 @@ void Square::draw() {
 
 	//set color
     glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT,color);
-    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,grey);
+    glMaterialfv(GL_FRONT_AND_BACK,GL_DIFFUSE,color);
     glMaterialfv(GL_FRONT,GL_SPECULAR,white);
     glMaterialf(GL_FRONT,GL_SHININESS,128.0);
     glLightfv(GL_LIGHT0,GL_AMBIENT,lowAmbient);
 
     // draw square
-    
     glBegin(GL_POLYGON);
     glVertex3f(corners[0].x,corners[0].y,corners[0].z);
     glVertex3f(corners[1].x,corners[1].y,corners[1].z);

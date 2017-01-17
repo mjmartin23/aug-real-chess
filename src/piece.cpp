@@ -16,12 +16,12 @@ Piece::Piece(int teamNum,float markerSizeParam) {
 void Piece::setColor() {
 	if (team == 1) {
 		// draw white piece
-		colorA[0] = 0.98; color[1] = 0.98; color[2] = 0.98; color[3] = 1.0;
-		colorD[0] = 0.75; color[1] = 0.75; color[2] = 0.75; color[3] = 1.0;
+		colorA[0] = 0.98; colorA[1] = 0.98; colorA[2] = 0.98; colorA[3] = 1.0;
+		colorD[0] = 0.75; colorD[1] = 0.75; colorD[2] = 0.75; colorD[3] = 1.0;
 	} else {
 		// draw black piece
-		colorA[0] = 0.1; color[1] = 0.1; color[2] = 0.1; color[3] = 1.0;
-		colord[0] = 0.25; color[1] = 0.25; color[2] = 0.25; color[3] = 1.0;
+		colorA[0] = 0.1; colorA[1] = 0.1; colorA[2] = 0.1; colorA[3] = 1.0;
+		colorD[0] = 0.25; colorD[1] = 0.25; colorD[2] = 0.25; colorD[3] = 1.0;
 	}
 	grey[0] = 0.5; grey[1] = 0.5; grey[2] = 0.5; grey[3] = 1.0;
     lowAmbient[0] = 0.2; lowAmbient[1] = 0.2; lowAmbient[2] = 0.2; lowAmbient[3] = 1.0;
@@ -40,11 +40,9 @@ void Piece::draw( std::vector<cv::Point3f> corners ) {
     center = cv::Point3f(((corners[0].x+corners[1].x+corners[2].x+corners[3].x) / 4.0) ,
 		    			 ((corners[0].y+corners[1].y+corners[2].y+corners[3].y) / 4.0),
 		    			 zTranslate);
-    //cout<<center<<endl;
     glPushMatrix();
     glTranslatef(center.x,center.y,center.z);
     glRotatef(90.f,1.f,0.f,0.f);
-    //glLoadIdentity();
 
     glBegin(GL_TRIANGLES);
     for (int i = 0; i < faces.size(); ++i) {

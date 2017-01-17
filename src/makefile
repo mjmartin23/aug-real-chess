@@ -23,8 +23,11 @@ LDFLAGS = -L/usr/local/lib  # opencv libraries are here
 #LDLIBS = -lopencv_core -lopencv_highgui -lopencv_video -lopencv_videoio -lopencv_imgproc -lopencv_imgcodecs
 
 # Dwarf libraries
-LDLIBS = $(LDFLAGS) -lopencv_shape -lopencv_stitching -lopencv_objdetect -lopencv_superres -lopencv_videostab -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lopencv_videoio -lopencv_imgcodecs -lopencv_video -lopencv_photo -lopencv_ml -lopencv_imgproc -lopencv_flann -lopencv_core -laruco -lGLEW -lGLU -lGL -lglut
+CVLIBS = -lopencv_calib3d -lopencv_highgui -lopencv_videoio -lopencv_imgcodecs -lopencv_video -lopencv_imgproc -lopencv_core 
+ARUCOLIBS = -laruco
+OPENGLLIBS = -lGL -lglut
 
+LDLIBS = $(LDFLAGS) $(CVLIBS) $(ARUCOLIBS) $(OPENGLLIBS)
 BINDIR = ../bin
 
 vid: vidDisplay.o

@@ -12,20 +12,17 @@ Square class for chessboard
 
 class Square {
 public:
-	Square(int,int,int,float,Piece*);
+	Square(int,int,float,Piece*);
 	void draw();
 	void drawPiece();
 
-	int markerId;
 	bool isOccupied;
 
 private:
 	void setCorners();
 	void setColor();
 
-	bool seen;
 	int row,col;
-	int lastSeen;
 	
 	GLfloat color[4],grey[4],lowAmbient[4],white[4];
 	std::vector<cv::Point3f> corners;
