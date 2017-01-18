@@ -17,20 +17,24 @@ public:
 	Piece(int , float);
 
 	void draw(std::vector<cv::Point3f> corners);
+	bool inMoveSet(cv::Point);
+
+	int team; //1 is white 0 is black
+	int moves;
+	std::vector<cv::Point2i> moveSet;
 
 protected:
 	void setColor();
 
 	float scale;
 	cv::Point3f center;
-	int team; //1 is white 0 is black
 	OBJLoader obj;
 	std::vector<Vertex> verts;
     std::vector<NormalVector> norms;
     std::vector<Face> faces;
     GLfloat colorA[4],colorD[4],grey[4],lowAmbient[4],white[4];
 
-    std::vector<cv::Point2i> moveSet;
+    
     const char * objPath;
     float zTranslate;
 

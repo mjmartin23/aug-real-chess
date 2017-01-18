@@ -116,9 +116,10 @@ void Board::executeCommand(string cmd) {
 	if (std::find(validCommandStarts, end, cmd[0]) != end) {
 		//it exists
 		std::regex r("[a-h][1-8][a-h][1-8]");
-		if (cmd == "quit") {
+		if (cmd == "quit" || cmd == "q") {
 			cout<<"quitting"<<endl;
-		} else if (cmd == "reset") {
+      		exit(0);
+		} else if (cmd == "reset" || cmd == "r") {
 			cout<<"resetting"<<endl;
 		} else if (std::regex_match(cmd,r)) {
 			//cout<<cmd<<" matched with regex"<<endl;
@@ -136,25 +137,38 @@ void Board::makeMove(string start, string end) {
 	std::tuple<int,int> endPos = std::make_tuple(((int)end[0])-97,(int)end[1]-49);
 	Square *startSquare = squares[startPos];
 	Square *endSquare = squares[endPos];
-	//cout<<"got squares: "<<std::get<0>(startPos)<<" "<<std::get<1>(startPos)<<","<<std::get<0>(endPos)<<" "<<std::get<1>(endPos)<<endl;
 	if (startSquare->isOccupied) {
 		//move startSquare's Piece
 		Piece* piece = startSquare->piece;
-		endSquare->receivePiece(piece);
-		startSquare->removePiece();
+		cv::Point move = cv::Point( std::get<0>(startPos) - std::get<0>(endPos), std::get<1>(startPos) - std::get<1>(endPos));
+		cout<<move<<endl;
+		// for (cv::Point p : piece->moveSet) {
+		// 	cout<<p<<endl;
+		// }
+		if (piece->inMoveSet(move)) {
+			//in move set of piece
+			Piece *endPiece = endSquare->piece;
+			if (endSquare->isOccupied) {
+				if (endPiece->team == piece->team) {
+					cout<<"invalid move: your team owns the destination: "<<end<<endl;
+				} else {
+					cout<<"moving"<<endl;
+					endSquare->removePiece();
+					endSquare->receivePiece(piece);
+					startSquare->removePiece();
+				}
+			} else {
+				cout<<"moving"<<endl;
+				endSquare->receivePiece(piece);
+				startSquare->removePiece();
+			}
+		}
 	} else {
 		cout<<"invalid move: there is no piece at "<<start<<endl;
 	}
 }
 
 void Board::updateGame() {
-	// check for input if no input do nothing
-	// std::string name;
-	// //getline(std::cin, name);
-
-	// if (name.empty()) {
-	//     return;
-	// } else {
-	// 	cout<<"entered: "<<name<<endl;
-	// }
+	// update valid movesets for each piece
+	// see if check or checkmate
 }

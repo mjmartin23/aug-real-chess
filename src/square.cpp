@@ -39,6 +39,7 @@ void Square::setCorners() {
 
 void Square::receivePiece(Piece* p) {
 	piece = p;
+	piece->moves++;
 	isOccupied = (piece == nullptr) ? false : true;
 }
 

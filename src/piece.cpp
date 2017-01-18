@@ -10,6 +10,7 @@ Piece::Piece() { }
 Piece::Piece(int teamNum,float markerSizeParam) {
 	team = teamNum;
 	scale = markerSizeParam*0.15;
+	moves = 0;
 	setColor();
 }
 
@@ -72,39 +73,86 @@ void Piece::draw( std::vector<cv::Point3f> corners ) {
     glPopMatrix();
 }
 
+bool Piece::inMoveSet(cv::Point move) {
+	return (std::find(moveSet.begin(), moveSet.end(), move) != moveSet.end());
+}
+
 
 King::King(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
 	objPath = "../data/models/king.obj";
 	obj = OBJLoader(objPath,&verts,&norms,&faces);
 	zTranslate = scale*3.0;
+	moveSet.push_back(cv::Point(-1,-1));
+	moveSet.push_back(cv::Point(0,-1));
+	moveSet.push_back(cv::Point(1,-1));
+	moveSet.push_back(cv::Point(-1,0));
+	moveSet.push_back(cv::Point(1,0));
+	moveSet.push_back(cv::Point(-1,1));
+	moveSet.push_back(cv::Point(0,1));
+	moveSet.push_back(cv::Point(1,1));
 }
 
 Queen::Queen(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
 	objPath = "../data/models/queen.obj";
 	obj = OBJLoader(objPath,&verts,&norms,&faces);
 	zTranslate = scale*2.75;
+	for (int i = 0; i < 8; ++i) {
+		moveSet.push_back(cv::Point(0,i));
+		moveSet.push_back(cv::Point(0,-i));
+		moveSet.push_back(cv::Point(i,0));
+		moveSet.push_back(cv::Point(-i,0));
+		moveSet.push_back(cv::Point(i,i));
+		moveSet.push_back(cv::Point(-i,i));
+		moveSet.push_back(cv::Point(i,-i));
+		moveSet.push_back(cv::Point(-i,-i));
+	}
 }
 
 Bishop::Bishop(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
 	objPath = "../data/models/bishop.obj";
 	obj = OBJLoader(objPath,&verts,&norms,&faces);
 	zTranslate = scale*0.0;
+	for (int i = 0; i < 8; ++i) {
+		moveSet.push_back(cv::Point(i,i));
+		moveSet.push_back(cv::Point(-i,i));
+		moveSet.push_back(cv::Point(i,-i));
+		moveSet.push_back(cv::Point(-i,-i));
+	}
 }
 
 Knight::Knight(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
 	objPath = "../data/models/knight.obj";
 	obj = OBJLoader(objPath,&verts,&norms,&faces);
 	zTranslate = scale;
+	moveSet.push_back(cv::Point(-2,1));
+	moveSet.push_back(cv::Point(-1,2));
+	moveSet.push_back(cv::Point(2,1));
+	moveSet.push_back(cv::Point(1,2));
+	moveSet.push_back(cv::Point(-2,-1));
+	moveSet.push_back(cv::Point(-1,-2));
+	moveSet.push_back(cv::Point(2,-1));
+	moveSet.push_back(cv::Point(1,-2));
 }
 
 Rook::Rook(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
 	objPath = "../data/models/rook.obj";
 	obj = OBJLoader(objPath,&verts,&norms,&faces);
 	zTranslate = scale*1.8;
+	for (int i = 0; i < 8; ++i) {
+		moveSet.push_back(cv::Point(0,i));
+		moveSet.push_back(cv::Point(0,-i));
+		moveSet.push_back(cv::Point(i,0));
+		moveSet.push_back(cv::Point(-i,0));
+	}
 }
 
 Pawn::Pawn(int teamNum, float markerSizeParam) : Piece(teamNum,markerSizeParam) {
 	objPath = "../data/models/pawn.obj";
 	obj = OBJLoader(objPath,&verts,&norms,&faces);
 	zTranslate = scale*0.0;
+	int direction = (team == 0) ? 1 : -1;
+	moveSet.push_back(cv::Point(direction*0,direction*1));
+	moveSet.push_back(cv::Point(direction*0,direction*2));
+	moveSet.push_back(cv::Point(direction*1,direction*1));
+	moveSet.push_back(cv::Point(direction*-1,direction*1));
 }

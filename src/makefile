@@ -51,5 +51,8 @@ game: game.o board.o square.o objloader.o piece.o
 obj: objloader.o
 	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
 
+expo: expodetector.o
+	$(CC) $^ -o $(BINDIR)/$@ $(CFLAGS) $(LDLIBS)
+
 clean:
 	rm -f *.o *~ 

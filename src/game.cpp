@@ -37,6 +37,7 @@ or implied, of Rafael Muñoz Salinas.
 #include <stdio.h>
 #include <string>
 #include <stdlib.h>
+#include <exception>
 
 #include <GL/gl.h>
 #include <GL/glut.h>
@@ -428,7 +429,11 @@ void vKey(unsigned char key, int x, int y) {
         board.executeCommand(InputString);
         InputString = "";
     } else if (key == 8) {
-        InputString.erase(InputString.size() - 1);
+        try {
+            InputString.erase(InputString.size() - 1);
+        } catch (exception& e) {
+            cout << "Input string is empty" << endl;
+        }
         cout<<InputString<<endl;
     } else {
         InputString += key;
