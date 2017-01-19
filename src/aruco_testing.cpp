@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 
             //print the markers detected that belongs to the markerset
             vector<int> markers_from_set=TheMarkerMapConfig.getIndices(Markers);
-            //for(auto idx:markers_from_set) Markers[idx].draw(InImage, Scalar(0, 0, 255), 2);
+            for(auto idx:markers_from_set) Markers[idx].draw(InImage, Scalar(0, 0, 255), 2);
 
 
             //detect the 3d camera location wrt the markerset (if possible)

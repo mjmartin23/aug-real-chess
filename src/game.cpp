@@ -47,6 +47,7 @@ or implied, of Rafael Muñoz Salinas.
 #include "aruco/posetracker.h"
 #include "aruco/cvdrawingutils.h"
 
+#include "expodetector.h"
 #include "board.h"
 //#include "square.h"
 
@@ -62,7 +63,7 @@ float TheMarkerSize=-1;
 MarkerDetector PPDetector;
 VideoCapture TheVideoCapturer;
 vector<Marker> TheMarkers;
-Mat TheInputImage,TheUndInputImage,TheResizedImage;
+Mat TheInputImage,TheUndInputImage,TheResizedImage,ExpoThresh;
 CameraParameters TheCameraParams;
 
 MarkerMap TheMarkerMap;//configuration of the map
@@ -70,6 +71,7 @@ MarkerMapPoseTracker MSPoseTracker;
 string InputString;
 
 Board board;
+ExpoDetector TheExpoDetector;
 
 Size TheGlWindowSize;
 bool TheCaptureFlag=true;
@@ -130,6 +132,7 @@ int main(int argc,char **argv)
         }
 
         InputString = "";
+        TheExpoDetector = ExpoDetector(44,100,75,255,75,255);
 
         TheMarkerMap.readFromFile(MapConfigFile);
         if ( TheMarkerMap.isExpressedInPixels() && TheMarkerSize>0) {
@@ -291,6 +294,13 @@ void vDrawScene()
         board.updateGraphics();
         glPopMatrix();
     }
+
+    // expo
+    TheExpoDetector.detect(&TheUndInputImage,&ExpoThresh);
+    axis(TheMarkerSize);
+    // glBegin(GL_POLYGON);
+    // glColor3f()
+
 
     glutSwapBuffers();
 

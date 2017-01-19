@@ -9,9 +9,13 @@ using namespace std;
 class ExpoDetector
 {
 public:
+	ExpoDetector();
 	ExpoDetector(int*,int*,int*,int*,int*,int*);
+	ExpoDetector(int,int,int,int,int,int);
 
 	void detect(cv::Mat *,cv::Mat*);
+	void histogram(cv::Mat*,cv::Mat*);
+	int x,y;
 
 private:
 	int *lowH,*highH,*lowS,*highS,*lowV,*highV;
