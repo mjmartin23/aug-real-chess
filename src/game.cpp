@@ -84,9 +84,9 @@ void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void vKey(unsigned char key, int x, int y);
 void initialize();
-void drawThing(vector<Marker>);
+void drawThing(float,float,float);
 void modelView(double[],cv::Mat,cv::Mat);
-void calculateWorldCoordinates(float,float,cv::Point3f);
+void calculateWorldCoordinates(float,float,cv::Point3f[]);
 
 
 /************************************
@@ -315,10 +315,11 @@ void vDrawScene()
         cv::Point3f camPos(mvinv.at<float>(0,3),mvinv.at<float>(1,3),mvinv.at<float>(2,3));
         cout<<camPos<<endl;
 
-        cv::Point3f ballWorld;
+        // get ball position in board coords
+        cv::Point3f ballWorld[1];
         cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
         calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ballWorld);
-        cout<<ballWorld<<endl<<endl;
+        cout<<ballWorld[0]<<endl<<endl;
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_NORMALIZE);
@@ -327,6 +328,7 @@ void vDrawScene()
         glPushMatrix();
         board.updateGraphics();
         glPopMatrix();
+        drawThing(ballWorld[0].x,ballWorld[0].y,ballWorld[0].z);
     }
 
     glutSwapBuffers();
@@ -335,7 +337,7 @@ void vDrawScene()
 
 
 
-void drawThing(vector<Marker> markers) {
+void drawThing(float x, float y, float z) {
     GLfloat black[] = {0.0,0.0,0.0,1.0};
     GLfloat red[] = {1.0,0.0,0.0,1.0};
     GLfloat green[] = {0.0,1.0,0.0,1.0};
@@ -355,20 +357,13 @@ void drawThing(vector<Marker> markers) {
     glMaterialf(GL_FRONT,GL_SHININESS,128.0);
     glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
 
-    cv::Point3f ray;
-    cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
-    calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ray);
-    for (int i = 0; i < 10; ++i) {
-        //cout<<ray[i].x<<","<<ray[i].y<<","<<ray[i].z<<endl;
-    }
-    //cout<<endl;
+    glPushMatrix();
 
     //glColor3f(0.4,0.4,0.4);
-    //glTranslatef(worldX,worldY,worldZ);
+    glTranslatef(x,y,z);
     //glRotatef(90.f,1.f,0.f,0.f);
-    //glPushMatrix();
-    //axis(TheMarkerSize);
-    //glPopMatrix();
+    axis(TheMarkerSize);
+    glPopMatrix();
 }
 
 void modelView(double modelview_matrix[],cv::Mat Rvec,cv::Mat Tvec) {
@@ -459,20 +454,21 @@ void vIdle()
     glutPostRedisplay();
 }
 
-void calculateWorldCoordinates(float x, float y, cv::Point3f pos)
-{
+void calculateWorldCoordinates(float x, float y, cv::Point3f pos[]) {
     // //  START
     GLint viewport[4];
     GLdouble mvmatrix[16], projmatrix[16];
-    GLdouble mx,my,mz;
+    GLdouble mx,my,mz,winx,winy,winz;
 
     glGetIntegerv(GL_VIEWPORT, viewport);
     glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
     glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
     float real_y = (float)viewport[3] - y;   // viewport[3] is height of window in pixels
 
-    gluUnProject((GLdouble) x, (GLdouble) real_y, 1.0, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
-    pos = cv::Point3f(mx,my,mz);
+    gluProject( 0.0, 0.0, 0.0, mvmatrix,projmatrix,viewport,&winx,&winy,&winz);
+    //cout<<winz<<endl;
+    gluUnProject((GLdouble) x, (GLdouble) real_y, winz, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
+    pos[0] = cv::Point3f(mx,my,mz);
     
 
     //*mz = 0.0; 
