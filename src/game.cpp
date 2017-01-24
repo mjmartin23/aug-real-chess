@@ -86,7 +86,7 @@ void vKey(unsigned char key, int x, int y);
 void initialize();
 void drawThing(vector<Marker>);
 void modelView(double[],cv::Mat,cv::Mat);
-void calculateWorldCoordinates(float,float,cv::Point3f[]);
+void calculateWorldCoordinates(float,float,cv::Point3f);
 
 
 /************************************
@@ -288,7 +288,6 @@ void vDrawScene()
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
 
-    drawThing(TheMarkers);
     
     if ( MSPoseTracker.estimatePose(TheMarkers)) {
         double modelview_matrix[16];
@@ -296,13 +295,30 @@ void vDrawScene()
         rvec = MSPoseTracker.getRvec().t();
         tvec = MSPoseTracker.getTvec().t();
         modelView(modelview_matrix,rvec,tvec);
-        //cout<<rvec<<endl;
-        cout<<tvec<<endl;
-        //for (int i = 0; i < 16; i++) cout<<modelview_matrix[i]<<", ";
-        cout<<endl;
+        // cout<<rvec<<endl;
+        // cout<<tvec<<endl;
+        // for (int i = 0; i < 16; i++) cout<<modelview_matrix[i]<<", ";
+        // cout<<endl;
+
+        //drawThing(TheMarkers);
+
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glLoadMatrixd(modelview_matrix);
+
+        // get camera position in board coordinate system
+        cv::Mat mvinv = cv::Mat(4,4,CV_32FC1);
+        for (int i = 0; i < 16; ++i) {
+            mvinv.at<float>(i%4,i/4) = modelview_matrix[i];
+        }
+        mvinv = mvinv.inv();
+        cv::Point3f camPos(mvinv.at<float>(0,3),mvinv.at<float>(1,3),mvinv.at<float>(2,3));
+        cout<<camPos<<endl;
+
+        cv::Point3f ballWorld;
+        cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
+        calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ballWorld);
+        cout<<ballWorld<<endl<<endl;
 
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_NORMALIZE);
@@ -339,12 +355,13 @@ void drawThing(vector<Marker> markers) {
     glMaterialf(GL_FRONT,GL_SHININESS,128.0);
     glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
 
-    cv::Point3f ray[2];
+    cv::Point3f ray;
     cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
     calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ray);
-    cout<<ray[0].x<<","<<ray[0].y<<","<<ray[0].z<<endl;
-    cout<<ray[1].x<<","<<ray[1].y<<","<<ray[1].z<<endl;
-
+    for (int i = 0; i < 10; ++i) {
+        //cout<<ray[i].x<<","<<ray[i].y<<","<<ray[i].z<<endl;
+    }
+    //cout<<endl;
 
     //glColor3f(0.4,0.4,0.4);
     //glTranslatef(worldX,worldY,worldZ);
@@ -442,7 +459,7 @@ void vIdle()
     glutPostRedisplay();
 }
 
-void calculateWorldCoordinates(float x, float y, cv::Point3f ray[])
+void calculateWorldCoordinates(float x, float y, cv::Point3f pos)
 {
     // //  START
     GLint viewport[4];
@@ -454,11 +471,9 @@ void calculateWorldCoordinates(float x, float y, cv::Point3f ray[])
     glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
     float real_y = (float)viewport[3] - y;   // viewport[3] is height of window in pixels
 
-    //both to obtain the ray:
-    gluUnProject((GLdouble) x, (GLdouble) real_y, 0.0, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
-    ray[0] = cv::Point3f(mx,my,mz);
     gluUnProject((GLdouble) x, (GLdouble) real_y, 1.0, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
-    ray[1] = cv::Point3f(mx,my,mz);
+    pos = cv::Point3f(mx,my,mz);
+    
 
     //*mz = 0.0; 
 
