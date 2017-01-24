@@ -47,7 +47,7 @@ or implied, of Rafael Muñoz Salinas.
 #include "aruco/posetracker.h"
 #include "aruco/cvdrawingutils.h"
 
-#include "expodetector.h"
+#include "pointerdetector.h"
 #include "board.h"
 //#include "square.h"
 
@@ -63,7 +63,7 @@ float TheMarkerSize=-1;
 MarkerDetector PPDetector;
 VideoCapture TheVideoCapturer;
 vector<Marker> TheMarkers;
-Mat TheInputImage,TheUndInputImage,TheResizedImage,ExpoThresh;
+Mat TheInputImage,TheUndInputImage,TheResizedImage,TheRawInputImage;
 CameraParameters TheCameraParams;
 
 MarkerMap TheMarkerMap;//configuration of the map
@@ -71,7 +71,8 @@ MarkerMapPoseTracker MSPoseTracker;
 string InputString;
 
 Board board;
-ExpoDetector TheExpoDetector;
+PointerDetector ThePointerDetector;
+cv::Mat PointerPoint;
 
 Size TheGlWindowSize;
 bool TheCaptureFlag=true;
@@ -85,6 +86,7 @@ void vKey(unsigned char key, int x, int y);
 void initialize();
 void drawThing(vector<Marker>);
 void modelView(double[],cv::Mat,cv::Mat);
+void calculateWorldCoordinates(float,float,cv::Point3f[]);
 
 
 /************************************
@@ -132,7 +134,16 @@ int main(int argc,char **argv)
         }
 
         InputString = "";
-        TheExpoDetector = ExpoDetector(44,100,75,255,75,255);
+
+        int iLowH = 90;
+        int iHighH = 120;
+
+        int iLowS = 74; 
+        int iHighS = 255;
+
+        int iLowV = 75;
+        int iHighV = 255;
+        ThePointerDetector = PointerDetector(&iLowH,&iHighH,&iLowS,&iHighS,&iLowV,&iHighV);
 
         TheMarkerMap.readFromFile(MapConfigFile);
         if ( TheMarkerMap.isExpressedInPixels() && TheMarkerSize>0) {
@@ -276,12 +287,19 @@ void vDrawScene()
     TheCameraParams.glGetProjectionMatrix(TheInputImage.size(),TheGlWindowSize,proj_matrix,0.05,10);
     glLoadIdentity();
     glLoadMatrixd(proj_matrix);
+
+    drawThing(TheMarkers);
     
-    if ( !MSPoseTracker.estimatePose(TheMarkers)) {
-        //cerr<<"marker map pose not correctly computed"<<endl;
-    } else {
+    if ( MSPoseTracker.estimatePose(TheMarkers)) {
         double modelview_matrix[16];
-        modelView(modelview_matrix,MSPoseTracker.getRvec().t(),MSPoseTracker.getTvec().t());
+        cv::Mat rvec,tvec;
+        rvec = MSPoseTracker.getRvec().t();
+        tvec = MSPoseTracker.getTvec().t();
+        modelView(modelview_matrix,rvec,tvec);
+        //cout<<rvec<<endl;
+        cout<<tvec<<endl;
+        //for (int i = 0; i < 16; i++) cout<<modelview_matrix[i]<<", ";
+        cout<<endl;
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glLoadMatrixd(modelview_matrix);
@@ -294,13 +312,6 @@ void vDrawScene()
         board.updateGraphics();
         glPopMatrix();
     }
-
-    // expo
-    TheExpoDetector.detect(&TheUndInputImage,&ExpoThresh);
-    axis(TheMarkerSize);
-    // glBegin(GL_POLYGON);
-    // glColor3f()
-
 
     glutSwapBuffers();
 
@@ -321,35 +332,26 @@ void drawThing(vector<Marker> markers) {
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
     //now, for each marker,
-    double modelview_matrix[16];
-    for (unsigned int m=0;m<markers.size();m++)
-    {
-        if (m == 0) {
-            glMaterialfv(GL_FRONT,GL_AMBIENT,black);
-            glMaterialfv(GL_FRONT,GL_DIFFUSE,grey);
-            glMaterialfv(GL_FRONT,GL_SPECULAR,white);
-            glMaterialf(GL_FRONT,GL_SHININESS,128.0);
-            glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
+
+    glMaterialfv(GL_FRONT,GL_AMBIENT,black);
+    glMaterialfv(GL_FRONT,GL_DIFFUSE,grey);
+    glMaterialfv(GL_FRONT,GL_SPECULAR,white);
+    glMaterialf(GL_FRONT,GL_SHININESS,128.0);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
+
+    cv::Point3f ray[2];
+    cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
+    calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ray);
+    cout<<ray[0].x<<","<<ray[0].y<<","<<ray[0].z<<endl;
+    cout<<ray[1].x<<","<<ray[1].y<<","<<ray[1].z<<endl;
 
 
-            markers[m].glGetModelViewMatrix(modelview_matrix);
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glLoadMatrixd(modelview_matrix);
-
-            //glColor3f(0.4,0.4,0.4);
-            glTranslatef(0, 0, 0);
-            //glRotatef(90.f,1.f,0.f,0.f);
-            glPushMatrix();
-            glBegin(GL_POLYGON);
-            glVertex3f(TheMarkerSize/2.0*0,TheMarkerSize/2.0*0,TheMarkerSize/2.0*0);
-            glVertex3f(TheMarkerSize/2.0*1,TheMarkerSize/2.0*0,TheMarkerSize/2.0*0);
-            glVertex3f(TheMarkerSize/2.0*1,TheMarkerSize/2.0*1,TheMarkerSize/2.0*0);
-            glVertex3f(TheMarkerSize/2.0*0,TheMarkerSize/2.0*1,TheMarkerSize/2.0*0);
-            glEnd();
-            glPopMatrix();
-        }
-    }
+    //glColor3f(0.4,0.4,0.4);
+    //glTranslatef(worldX,worldY,worldZ);
+    //glRotatef(90.f,1.f,0.f,0.f);
+    //glPushMatrix();
+    //axis(TheMarkerSize);
+    //glPopMatrix();
 }
 
 void modelView(double modelview_matrix[],cv::Mat Rvec,cv::Mat Tvec) {
@@ -415,21 +417,73 @@ void vIdle()
     //board.updateGame();
     if (TheCaptureFlag) {
         //capture image
-        TheVideoCapturer.grab();
-        TheVideoCapturer.retrieve( TheInputImage);
-        TheUndInputImage.create(TheInputImage.size(),CV_8UC3);
+        TheVideoCapturer.read( TheRawInputImage);
+        TheUndInputImage.create(TheRawInputImage.size(),CV_8UC3);
         //transform color that by default is BGR to RGB because windows systems do not allow reading BGR images with opengl properly
-        cv::cvtColor(TheInputImage,TheInputImage,CV_BGR2RGB);
+        cv::cvtColor(TheRawInputImage,TheInputImage,CV_BGR2RGB);
         //remove distorion in image
         cv::undistort(TheInputImage,TheUndInputImage,TheCameraParams.CameraMatrix, TheCameraParams.Distorsion);
         //detect markers
         PPDetector.detect(TheUndInputImage,TheMarkers,TheCameraParams.CameraMatrix,Mat(),TheMarkerSize,false);
-        //detect the 3d camera location wrt the markerset (if possible)
+        // find
+        ThePointerDetector.update(TheRawInputImage,0);
+        //cout<<TheCameraParams.CameraMatrix.inv()<<endl;
+        //cv::Mat intr = (cv::Mat) TheCameraParams.CameraMatrix.inv();
+        // PointerPoint = cv::Mat::ones(3,1,cv::DataType<float>::type);
+        // PointerPoint.at<float>(0,0) = ThePointerDetector.x;
+        // PointerPoint.at<float>(1,0) = ThePointerDetector.y;
+        //PointerPoint = intr * PointerPoint;
+        // cout<<"point"<<endl;
+        // cout<<PointerPoint<<endl<<endl;    
         //resize the image to the size of the GL window
         cv::resize(TheUndInputImage,TheResizedImage,TheGlWindowSize);
         
     }
     glutPostRedisplay();
+}
+
+void calculateWorldCoordinates(float x, float y, cv::Point3f ray[])
+{
+    // //  START
+    GLint viewport[4];
+    GLdouble mvmatrix[16], projmatrix[16];
+    GLdouble mx,my,mz;
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+    float real_y = (float)viewport[3] - y;   // viewport[3] is height of window in pixels
+
+    //both to obtain the ray:
+    gluUnProject((GLdouble) x, (GLdouble) real_y, 0.0, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
+    ray[0] = cv::Point3f(mx,my,mz);
+    gluUnProject((GLdouble) x, (GLdouble) real_y, 1.0, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
+    ray[1] = cv::Point3f(mx,my,mz);
+
+    //*mz = 0.0; 
+
+    //   'mouse' is the point where mouse projection reaches FAR_PLANE.
+    //     World coordinates is intersection of line(camera->mouse) with plane(z=0) (see LaMothe 306)
+
+    //     Equation of line in 3D:
+    //         (x-x0)/a = (y-y0)/b = (z-z0)/c      
+
+    //     Intersection of line with plane:
+    //         z = 0
+    //         x-x0 = a(z-z0)/c  <=> x = x0+a(0-z0)/c  <=> x = x0 -a*z0/c
+    //         y = y0 - b*z0/c
+
+    
+    // double lx = x - mx;
+    // double ly = y - my;
+    // double lz = z - mz;
+    // double sum = lx*lx + ly*ly + lz*lz;
+    // double normal = sqrt(sum);
+    // double z0_c = z / (lz/normal);
+
+    // vec->x = (float) (x - (lx/normal)*z0_c);
+    // vec->y = (float) (y - (ly/normal)*z0_c);
+    // vec->z = 0.0f;
 }
 
 
