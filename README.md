@@ -1,4 +1,4 @@
 # Augmented Reality Chess
-Built with C++ and OpenCV.
+Built with C++, OpenCV and OpenGL.
 
 Advised by Bruce Maxwell.
