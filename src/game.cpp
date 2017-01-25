@@ -127,7 +127,7 @@ int main(int argc,char **argv)
     {//parse arguments
         if (readArguments (argc,argv)==false) return 0;
         //read from camera
-        if (TheInputVideo=="live") TheVideoCapturer.open(0);
+        if (TheInputVideo=="live") TheVideoCapturer.open(1);
         else TheVideoCapturer.open(TheInputVideo);
         if (!TheVideoCapturer.isOpened())
         {
