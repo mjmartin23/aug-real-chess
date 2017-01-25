@@ -38,7 +38,7 @@ void Piece::draw( std::vector<cv::Point3f> corners ) {
     glMaterialf(GL_FRONT,GL_SHININESS,128.0);
     glLightfv(GL_LIGHT0,GL_AMBIENT,lowAmbient);
 
-    center = cv::Point3f(((corners[0].x+corners[1].x+corners[2].x+corners[3].x) / 4.0) ,
+    center = cv::Point3f(((corners[0].x+corners[1].x+corners[2].x+corners[3].x) / 4.0),
 		    			 ((corners[0].y+corners[1].y+corners[2].y+corners[3].y) / 4.0),
 		    			 zTranslate);
     glPushMatrix();

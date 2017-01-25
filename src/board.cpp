@@ -12,10 +12,16 @@ Board::Board() {
 
 
 Board::Board(float markerSizeParam) {
-	markerSize = markerSizeParam;
-	size = std::make_tuple(8,8);
+	this->markerSize = markerSizeParam;
+	this->size = std::make_tuple(8,8);
+	this->firstPicked = std::make_tuple(-1,-1);
 	generateSquaresandPieces();
 	generateValidCommandStarts();
+}
+
+void Board::reset() {
+	this->firstPicked = std::make_tuple(-1,-1);
+	generateSquaresandPieces();
 }
 
 void Board::generateSquaresandPieces() {
@@ -34,7 +40,7 @@ void Board::generateValidCommandStarts() {
 	validCommandStarts[0] = 'a';validCommandStarts[1] = 'b';validCommandStarts[2] = 'c';
 	validCommandStarts[3] = 'd';validCommandStarts[4] = 'e';validCommandStarts[5] = 'f';
 	validCommandStarts[6] = 'g';validCommandStarts[7] = 'h';validCommandStarts[8] = 'q';
-	validCommandStarts[9] = 'r';
+	validCommandStarts[9] = 'r';validCommandStarts[10] = 'p';
 }
 
 
@@ -86,16 +92,16 @@ Piece* Board::determinePieceType(int j, int i) {
 	}
 }
 
-void Board::updateGraphics() {
+void Board::updateGraphics(cv::Point3f pointer) {
 	//cout << "Updating board" << endl;
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
-    glShadeModel(GL_SMOOTH);
 	// draw squares
 	for (int i = 0; i < std::get<0>(size); ++i) {
 		for (int j = 0; j < std::get<1>(size); ++j) {
 			std::tuple<int,int> pos = std::make_tuple(j,i);
 			Square *square = squares[pos];
+			// check if pointer is in this square
+			square->contains(pointer);
+			//cout<<square->selected<<endl;
 			square->draw();
 		}
 	}
@@ -111,6 +117,27 @@ void Board::updateGraphics() {
 	}
 }
 
+void Board::pickSquare() {
+	for (int i = 0; i < std::get<0>(size); ++i) {
+		for (int j = 0; j < std::get<1>(size); ++j) {
+			std::tuple<int,int> pos = std::make_tuple(j,i);
+			Square *square = squares[pos];
+			// check if pointer is in this square
+			if (square->selected) {
+				cout<<"square at "<<j<<","<<i<<" selected"<<endl;
+				if (this->firstPicked == std::make_tuple(-1,-1)) {
+					this->firstPicked = pos;
+					//cout<<"fp"<<endl;
+				} else {
+					this->makeMove(this->firstPicked, pos);
+					this->firstPicked = std::make_tuple(-1,-1);
+					//cout<<"moving"<<endl;
+				}
+			}
+		}
+	}
+}
+
 void Board::executeCommand(string cmd) {
 	char* end = validCommandStarts + sizeof(validCommandStarts) / sizeof(validCommandStarts[0]);
 	if (std::find(validCommandStarts, end, cmd[0]) != end) {
@@ -121,9 +148,14 @@ void Board::executeCommand(string cmd) {
       		exit(0);
 		} else if (cmd == "reset" || cmd == "r") {
 			cout<<"resetting"<<endl;
+			this->reset();
+		// } else if (cmd == "pick" || cmd == "p") {
+		// 	this->pickSquare();
 		} else if (std::regex_match(cmd,r)) {
 			//cout<<cmd<<" matched with regex"<<endl;
-			makeMove(cmd.substr(0,2),cmd.substr(2,2));
+			std::tuple<int,int> startPos = std::make_tuple(((int)cmd[0])-97,(int)cmd[1]-49);
+			std::tuple<int,int> endPos = std::make_tuple(((int)cmd[2])-97,(int)cmd[3]-49);
+			makeMove(startPos,endPos);
 		} else {
 			cout<<"invalid input here: "<<cmd<<endl;
 		}
@@ -132,16 +164,14 @@ void Board::executeCommand(string cmd) {
 	}
 }
 
-void Board::makeMove(string start, string end) {
-	std::tuple<int,int> startPos = std::make_tuple(((int)start[0])-97,(int)start[1]-49);
-	std::tuple<int,int> endPos = std::make_tuple(((int)end[0])-97,(int)end[1]-49);
-	Square *startSquare = squares[startPos];
-	Square *endSquare = squares[endPos];
+void Board::makeMove(std::tuple<int,int> start, std::tuple<int,int> end) {
+	Square *startSquare = squares[start];
+	Square *endSquare = squares[end];
 	if (startSquare->isOccupied) {
 		//move startSquare's Piece
 		Piece* piece = startSquare->piece;
-		cv::Point move = cv::Point( std::get<0>(startPos) - std::get<0>(endPos), std::get<1>(startPos) - std::get<1>(endPos));
-		cout<<move<<endl;
+		cv::Point move = cv::Point( std::get<0>(start) - std::get<0>(end), std::get<1>(start) - std::get<1>(end));
+		//cout<<move<<endl;
 		// for (cv::Point p : piece->moveSet) {
 		// 	cout<<p<<endl;
 		// }
@@ -150,7 +180,7 @@ void Board::makeMove(string start, string end) {
 			Piece *endPiece = endSquare->piece;
 			if (endSquare->isOccupied) {
 				if (endPiece->team == piece->team) {
-					cout<<"invalid move: your team owns the destination: "<<end<<endl;
+					cout<<"invalid move: your team owns the destination"<<endl;
 				} else {
 					cout<<"moving"<<endl;
 					endSquare->removePiece();
@@ -164,7 +194,7 @@ void Board::makeMove(string start, string end) {
 			}
 		}
 	} else {
-		cout<<"invalid move: there is no piece at "<<start<<endl;
+		cout<<"invalid move: there is no piece at start"<<endl;
 	}
 }
 

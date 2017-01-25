@@ -17,9 +17,11 @@ public:
 	void drawPiece();
 	void receivePiece(Piece*);
 	void removePiece();
+	void contains(cv::Point3f);
 
 	bool isOccupied;
 	Piece* piece;
+	bool selected;
 
 private:
 	void setCorners();
@@ -27,7 +29,7 @@ private:
 
 	int row,col;
 	
-	GLfloat color[4],grey[4],lowAmbient[4],white[4];
+	GLfloat color[4],grey[4],lowAmbient[4],white[4],highlight[4];
 	std::vector<cv::Point3f> corners;
 	float squareSize;
 };

@@ -17,9 +17,10 @@ class Board {
 public:
 	Board();
 	Board( float );
-	void updateGraphics(  );
+	void updateGraphics( cv::Point3f );
 	void updateGame();
 	void executeCommand(string); 
+	void pickSquare();
 
 	std::map<std::tuple<int,int>,Square*> squares;
 
@@ -27,9 +28,10 @@ private:
 	void generateSquaresandPieces();
 	void generateValidCommandStarts();
 	Piece* determinePieceType(int, int );
-	void makeMove(string,string);
+	void makeMove(std::tuple<int,int>,std::tuple<int,int>);
+	void reset();
 
-	std::tuple<int,int> size;
+	std::tuple<int,int> size,firstPicked;
 	float markerSize;
-	char validCommandStarts[10];
+	char validCommandStarts[11];
 };

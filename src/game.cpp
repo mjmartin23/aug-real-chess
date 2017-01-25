@@ -73,6 +73,7 @@ string InputString;
 Board board;
 PointerDetector ThePointerDetector;
 cv::Mat PointerPoint;
+cv::Point3f PointerWorldCoords = cv::Point3f();
 
 Size TheGlWindowSize;
 bool TheCaptureFlag=true;
@@ -84,9 +85,11 @@ void vResize( GLsizei iWidth, GLsizei iHeight );
 void vMouse(int b,int s,int x,int y);
 void vKey(unsigned char key, int x, int y);
 void initialize();
-void drawThing(float,float,float);
+void drawThing(cv::Point3f);
 void modelView(double[],cv::Mat,cv::Mat);
 void calculateWorldCoordinates(float,float,cv::Point3f[]);
+void getIntersectionWithBoard(cv::Point3f,cv::Point3f,cv::Point3f[]);
+void findPointer();
 
 
 /************************************
@@ -289,46 +292,27 @@ void vDrawScene()
     glLoadMatrixd(proj_matrix);
 
     
-    if ( MSPoseTracker.estimatePose(TheMarkers)) {
+    if ( MSPoseTracker.estimatePose(TheMarkers) ) {
         double modelview_matrix[16];
         cv::Mat rvec,tvec;
         rvec = MSPoseTracker.getRvec().t();
         tvec = MSPoseTracker.getTvec().t();
         modelView(modelview_matrix,rvec,tvec);
-        // cout<<rvec<<endl;
-        // cout<<tvec<<endl;
-        // for (int i = 0; i < 16; i++) cout<<modelview_matrix[i]<<", ";
-        // cout<<endl;
-
-        //drawThing(TheMarkers);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glLoadMatrixd(modelview_matrix);
 
-        // get camera position in board coordinate system
-        cv::Mat mvinv = cv::Mat(4,4,CV_32FC1);
-        for (int i = 0; i < 16; ++i) {
-            mvinv.at<float>(i%4,i/4) = modelview_matrix[i];
-        }
-        mvinv = mvinv.inv();
-        cv::Point3f camPos(mvinv.at<float>(0,3),mvinv.at<float>(1,3),mvinv.at<float>(2,3));
-        cout<<camPos<<endl;
-
-        // get ball position in board coords
-        cv::Point3f ballWorld[1];
-        cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
-        calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ballWorld);
-        cout<<ballWorld[0]<<endl<<endl;
-
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_NORMALIZE);
         glShadeModel(GL_SMOOTH);
 
+        findPointer();
+
         glPushMatrix();
-        board.updateGraphics();
+            board.updateGraphics(PointerWorldCoords);
+            drawThing(PointerWorldCoords);
         glPopMatrix();
-        drawThing(ballWorld[0].x,ballWorld[0].y,ballWorld[0].z);
     }
 
     glutSwapBuffers();
@@ -337,7 +321,7 @@ void vDrawScene()
 
 
 
-void drawThing(float x, float y, float z) {
+void drawThing(cv::Point3f point) {
     GLfloat black[] = {0.0,0.0,0.0,1.0};
     GLfloat red[] = {1.0,0.0,0.0,1.0};
     GLfloat green[] = {0.0,1.0,0.0,1.0};
@@ -346,23 +330,15 @@ void drawThing(float x, float y, float z) {
     GLfloat grey[] = {0.5,0.5,0.5,1.0};
     GLfloat lowAmbient[] = {0.2,0.2,0.2,1.0};
 
-
-    glEnable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
-    //now, for each marker,
-
-    glMaterialfv(GL_FRONT,GL_AMBIENT,black);
+    glMaterialfv(GL_FRONT,GL_AMBIENT,blue);
     glMaterialfv(GL_FRONT,GL_DIFFUSE,grey);
     glMaterialfv(GL_FRONT,GL_SPECULAR,white);
     glMaterialf(GL_FRONT,GL_SHININESS,128.0);
     glLightfv(GL_LIGHT0, GL_AMBIENT, lowAmbient);
 
     glPushMatrix();
-
-    //glColor3f(0.4,0.4,0.4);
-    glTranslatef(x,y,z);
-    //glRotatef(90.f,1.f,0.f,0.f);
-    axis(TheMarkerSize);
+        glTranslatef(point.x,point.y,point.z);
+        glutSolidSphere(TheMarkerSize/6,10,10);
     glPopMatrix();
 }
 
@@ -418,6 +394,66 @@ void modelView(double modelview_matrix[],cv::Mat Rvec,cv::Mat Tvec) {
 }
 
 
+void calculateWorldCoordinates(float x, float y, cv::Point3f pos[]) {
+    // //  START
+    GLint viewport[4];
+    GLdouble mvmatrix[16], projmatrix[16];
+    GLdouble mx,my,mz,winx,winy,winz;
+
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+    float real_y = (float)viewport[3] - y;   // viewport[3] is height of window in pixels
+
+    gluProject( 0.0, 0.0, 0.0, mvmatrix,projmatrix,viewport,&winx,&winy,&winz);
+    //cout<<winz<<endl;
+    gluUnProject((GLdouble) x, (GLdouble) real_y, 0.5, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
+    pos[0] = cv::Point3f(mx,my,mz);
+    
+}
+
+
+void getIntersectionWithBoard(cv::Point3f pt0,cv::Point3f pt1, cv::Point3f out[]) {
+    // intersect line formed by pt0 and pt1 with plane z = 0
+    float t,x,y,z;
+    t = -pt0.z/(pt1.z-pt0.z);
+    x = pt0.x+t*(pt1.x-pt0.x);
+    y = pt0.y+t*(pt1.y-pt0.y);
+    z = 0.0f;
+    out[0].x = x;
+    out[0].y = y;
+    out[0].z = z;
+}
+
+
+void findPointer() {
+
+    GLdouble modelview_matrix[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix);
+
+    // get camera position in board coordinate system
+    cv::Mat mvinv = cv::Mat(4,4,CV_32FC1);
+    for (int i = 0; i < 16; ++i) {
+        mvinv.at<float>(i%4,i/4) = modelview_matrix[i];
+    }
+    mvinv = mvinv.inv();
+    cv::Point3f camPos(mvinv.at<float>(0,3),mvinv.at<float>(1,3),mvinv.at<float>(2,3));
+    //cout<<camPos<<endl;
+
+    // get ball position in board coords
+    cv::Point3f ballWorld[1];
+    //cout<<ThePointerDetector.x<<","<<ThePointerDetector.y<<endl;
+    calculateWorldCoordinates(ThePointerDetector.x,ThePointerDetector.y,ballWorld);
+    //cout<<ballWorld[0]<<endl<<endl;
+
+    cv::Point3f intersection[1];
+    getIntersectionWithBoard(camPos, ballWorld[0], intersection);
+
+    PointerWorldCoords = intersection[0];
+
+}
+
+
 /************************************
  *
  *
@@ -437,64 +473,13 @@ void vIdle()
         cv::undistort(TheInputImage,TheUndInputImage,TheCameraParams.CameraMatrix, TheCameraParams.Distorsion);
         //detect markers
         PPDetector.detect(TheUndInputImage,TheMarkers,TheCameraParams.CameraMatrix,Mat(),TheMarkerSize,false);
-        // find
-        ThePointerDetector.update(TheRawInputImage,0);
-        //cout<<TheCameraParams.CameraMatrix.inv()<<endl;
-        //cv::Mat intr = (cv::Mat) TheCameraParams.CameraMatrix.inv();
-        // PointerPoint = cv::Mat::ones(3,1,cv::DataType<float>::type);
-        // PointerPoint.at<float>(0,0) = ThePointerDetector.x;
-        // PointerPoint.at<float>(1,0) = ThePointerDetector.y;
-        //PointerPoint = intr * PointerPoint;
-        // cout<<"point"<<endl;
-        // cout<<PointerPoint<<endl<<endl;    
         //resize the image to the size of the GL window
         cv::resize(TheUndInputImage,TheResizedImage,TheGlWindowSize);
-        
+        cv::Mat RawResized;
+        cv::resize(TheRawInputImage,RawResized,TheGlWindowSize);
+        ThePointerDetector.update(RawResized,0);
     }
     glutPostRedisplay();
-}
-
-void calculateWorldCoordinates(float x, float y, cv::Point3f pos[]) {
-    // //  START
-    GLint viewport[4];
-    GLdouble mvmatrix[16], projmatrix[16];
-    GLdouble mx,my,mz,winx,winy,winz;
-
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
-    glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
-    float real_y = (float)viewport[3] - y;   // viewport[3] is height of window in pixels
-
-    gluProject( 0.0, 0.0, 0.0, mvmatrix,projmatrix,viewport,&winx,&winy,&winz);
-    //cout<<winz<<endl;
-    gluUnProject((GLdouble) x, (GLdouble) real_y, winz, mvmatrix, projmatrix, viewport, &mx, &my, &mz);
-    pos[0] = cv::Point3f(mx,my,mz);
-    
-
-    //*mz = 0.0; 
-
-    //   'mouse' is the point where mouse projection reaches FAR_PLANE.
-    //     World coordinates is intersection of line(camera->mouse) with plane(z=0) (see LaMothe 306)
-
-    //     Equation of line in 3D:
-    //         (x-x0)/a = (y-y0)/b = (z-z0)/c      
-
-    //     Intersection of line with plane:
-    //         z = 0
-    //         x-x0 = a(z-z0)/c  <=> x = x0+a(0-z0)/c  <=> x = x0 -a*z0/c
-    //         y = y0 - b*z0/c
-
-    
-    // double lx = x - mx;
-    // double ly = y - my;
-    // double lz = z - mz;
-    // double sum = lx*lx + ly*ly + lz*lz;
-    // double normal = sqrt(sum);
-    // double z0_c = z / (lz/normal);
-
-    // vec->x = (float) (x - (lx/normal)*z0_c);
-    // vec->y = (float) (y - (ly/normal)*z0_c);
-    // vec->z = 0.0f;
 }
 
 
@@ -510,6 +495,8 @@ void vKey(unsigned char key, int x, int y) {
             cout << "Input string is empty" << endl;
         }
         cout<<InputString<<endl;
+    } else if (key == 112) {
+        board.pickSquare();
     } else {
         InputString += key;
         cout<<InputString<<endl;
