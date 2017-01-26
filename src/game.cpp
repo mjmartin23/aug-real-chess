@@ -103,7 +103,7 @@ bool readArguments ( int argc,char **argv )
 {
     if (argc!=5) {
         cerr<<"Invalid number of arguments"<<endl;
-        cerr<<"Usage: (in.avi|live)  marker_map_config.yml intrinsics.yml (../data/logitech_calibration.yml)   size (0.0425)"<<endl;
+        cerr<<"Usage: (in.avi|live)  marker_map_config.yml (../data/config_small.yml) intrinsics.yml (../data/logitech_calibration.yml)   size (0.0425)"<<endl;
         return false;
     }
     TheInputVideo=argv[1];

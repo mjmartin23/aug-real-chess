@@ -79,7 +79,6 @@ void Square::contains(cv::Point3f pt) {
 }
 
 void Square::draw() {
-	//cout<<this->selected<<endl;
 
 	//set color
 	if (!this->selected) {
